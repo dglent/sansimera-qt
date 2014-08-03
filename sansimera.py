@@ -47,9 +47,10 @@ class Sansimera(QMainWindow):
         #FIX: if run with session, wait tray ??
         self.timer.singleShot(15000, self.download)
         self.browser.append('Λήψη...')
-        nicon = QIcon(':/next.png')
-        picon = QIcon(':/previous.png')
+        nicon = QIcon(':/next')
+        picon = QIcon(':/previous')
         ricon = QIcon(':/refresh')
+        qicon = QIcon(':/exit')
         nextAction = QAction('Επόμενο', self)
         nextAction.setIcon(nicon)
         previousAction = QAction('Προηγούμενο', self)
@@ -58,6 +59,7 @@ class Sansimera(QMainWindow):
         self.connect(previousAction, SIGNAL('triggered()'), self.previousItem)
         previousAction.setIcon(picon)
         refreshAction.setIcon(ricon)
+        exitAction.setIcon(qicon)
         controls = QToolBar()
         self.addToolBar(Qt.BottomToolBarArea, controls)
         controls.addAction(previousAction)
@@ -138,7 +140,7 @@ class Sansimera(QMainWindow):
         self.systray.showMessage('Εορτάζουν:\n', ttip)
         
     def retry(self):
-        self.download()
+        self.refresh()
         
     def next_try(self):
         self.timer.singleShot(1000, self.retry)
@@ -146,15 +148,15 @@ class Sansimera(QMainWindow):
     def window(self):
         if self.status_online:
             self.browser.clear()
-            #data = sansimera_data.Sansimera_data()
-            #self.lista = data.getAll()
             self.browser.append(self.lista[0])
             self.lista_pos=0
-            self.systray.setToolTip('Δεν υπάρχει κάποια σημαντική εορτή')
+            message = 'Δεν υπάρχει κάποια σημαντική εορτή'
+            self.systray.setToolTip(message)
             for i in range(0, len(self.lista)):
                 if self.lista[i].count('Εορτολόγιο') == 1:
-                    print(lista[i])
                     self.nameintooltip(self.lista[i])
+                else:
+                    self.systray.showMessage('Εορτάζουν:\n', message)
             return
         else:
             if self.tentatives == 10: return
