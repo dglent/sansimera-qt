@@ -139,11 +139,8 @@ class Sansimera(QMainWindow):
         self.systray.setToolTip(ttip)
         self.systray.showMessage('Εορτάζουν:\n', ttip)
         
-    def retry(self):
-        self.refresh()
-        
     def next_try(self):
-        self.timer.singleShot(1000, self.retry)
+        self.timer.singleShot(1000, self.refresh)
         
     def window(self):
         if self.status_online:
