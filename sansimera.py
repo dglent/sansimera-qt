@@ -46,7 +46,6 @@ class Sansimera(QMainWindow):
         self.menu.setWindowFlags(Qt.Dialog | Qt.CustomizeWindowHint)
         #FIX: if run with session, wait tray ??
         self.timer.singleShot(15000, self.download)
-        self.download()
         self.browser.append('Λήψη...')
         nicon = QIcon(':/next.png')
         picon = QIcon(':/previous.png')
