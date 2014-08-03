@@ -69,13 +69,13 @@ class Sansimera(QMainWindow):
     def nextItem(self):
         if len(self.lista) >= 1:
             self.browser.clear()
-            if self.lista_pos == len(self.lista):
-                self.lista_pos = 0
+            if self.lista_pos != len(self.lista)-1:
+                self.lista_pos += 1
             else:
-                self.lista_pos +=1
-            if self.lista_pos == len(self.lista):
                 self.lista_pos = 0
             self.browser.append(self.lista[self.lista_pos])
+        else:
+            return
 
     def previousItem(self):
         if len(self.lista) >= 1:
@@ -83,12 +83,15 @@ class Sansimera(QMainWindow):
             if self.lista_pos == 0:
                 self.lista_pos = len(self.lista)-1
             else:
-                self.lista_pos -=1
-            self.browser.append(self.lista[self.lista_pos])   
+                self.lista_pos -= 1
+            self.browser.append(self.lista[self.lista_pos])
+        else:
+            return
         
     def refresh(self):
         self.menu.hide()
         self.browser.clear()
+        self.lista = []
         self.systray.setToolTip('Σαν σήμερα...')
         self.browser.append('Λήψη...')
         self.tentatives = 0
@@ -103,9 +106,11 @@ class Sansimera(QMainWindow):
         state = self.isVisible()
         if reason == 3:
             if state:
-                self.hide(); return
+                self.hide()
+                return
             else:
-                self.show(); return
+                self.show()
+                return
         if reason == 1:
             if self.menu.isVisible():
                 self.menu.hide()
@@ -113,6 +118,8 @@ class Sansimera(QMainWindow):
                 self.menu.popup(QCursor.pos())
         
     def exit(self):
+        ''' Try to prevent to exit the application
+        if cklicked on close button of the window'''
         if not self.app: return
         self.app.started.connect(self.app.quit, type=Qt.QueuedConnection)
         self.app.exec_()
@@ -133,9 +140,11 @@ class Sansimera(QMainWindow):
         self.status_online = status
 
     def nameintooltip(self, text):
-        names = re.findall('<a href="http://www.sansimera.gr/namedays">([\D]+)</a>', text)
+        names = re.findall(
+            '<a href="http://www.sansimera.gr/namedays">([\D]+)</a>', text)
         ttip = ''.join(n for n in names)
-        if ttip == '': return
+        if ttip == '':
+            return
         self.systray.setToolTip(ttip)
         self.systray.showMessage('Εορτάζουν:\n', ttip)
         
@@ -143,6 +152,11 @@ class Sansimera(QMainWindow):
         self.timer.singleShot(1000, self.refresh)
         
     def window(self):
+        # BUG: assign None to the thread to
+        # prevent crash if the button
+        # refresh is pressed multiple times
+        # Is it the right way to do it ???
+        self.workThread = None
         if self.status_online:
             self.browser.clear()
             self.browser.append(self.lista[0])
@@ -156,7 +170,8 @@ class Sansimera(QMainWindow):
                     self.systray.showMessage('Εορτάζουν:\n', message)
             return
         else:
-            if self.tentatives == 10: return
+            if self.tentatives == 10:
+                return
             self.next_try()
             self.tentatives += 1
             
