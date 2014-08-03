@@ -15,7 +15,7 @@ class Sansimera_fetch(QObject):
 
     def url(self):
         imerominia = str(self.pay()+self.ponth())
-        self.url = 'http://www.sansimera.gr/almanac/'+imerominia
+        self.url = 'http://www.sansimera.gr/almanac/' + imerominia
         return self.url
 
     def pay(self):
@@ -35,11 +35,12 @@ class Sansimera_fetch(QObject):
             '04': 'Απριλίου', '05': 'Μαίου', '06': 'Ιουνίου', '07': 'Ιουλίου', \
                 '08': 'Αυγούστου', '09': 'Σεπτεμβρίου', '10': 'Οκτωβρίου', \
                     '11': 'Νοεμβρίου', '12': 'Δεκεμβρίου'}
-        n = self.ponth()
-        self.im = str(' ' * 10 + '...Σαν σήμερα ' + self.pay() + ' ' + dico[n] + '\n')
+        month = self.ponth()
+        self.im = str(' ' * 10 + '...Σαν σήμερα ' + self.pay() + ' ' + dico[month] + '\n')
         return self.im
     
-    def removeFiles(self):
+    @staticmethod
+    def removeFiles():
         currentPath = os.path.basename(os.getcwd())
         if currentPath == 'sansimera_cache':
             for _file in glob.glob('*'):
@@ -60,16 +61,15 @@ class Sansimera_fetch(QObject):
         filename='sansimera_html'
         comm0 = 'touch ' + filename
         os.system(comm0)
-        comm = 'wget --timeout=5 --user-agent="Sansimera PyQt" '+link+' -O '+filename
+        comm = 'wget --timeout=5 --user-agent="Sansimera PyQt" ' + link + ' -O ' + filename
         self.online = True
-        self.removeFiles()
+        Sansimera_fetch.removeFiles()
         os.system(comm)
         try:
-            arxeio = open(filename, 'r')
-            ss=arxeio.read()
-            if ss == '':
-                self.online = False
-            arxeio.close()
+            with open(filename, 'r') as html_file:
+                check_line = html_file.read()
+                if check_line == '':
+                    self.online = False
         except:
             self.online = False
         self.emit(SIGNAL('online(bool)'), self.online)
