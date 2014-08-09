@@ -45,7 +45,7 @@ class Sansimera(QMainWindow):
         self.systray.activated.connect(self.activate)
         self.menu.setWindowFlags(Qt.Dialog | Qt.CustomizeWindowHint)
         #FIX: if run with session, wait tray ??
-        self.timer.singleShot(15000, self.download)
+        self.timer.singleShot(10000, self.download)
         self.browser.append('Λήψη...')
         nicon = QIcon(':/next')
         picon = QIcon(':/previous')
@@ -142,14 +142,14 @@ class Sansimera(QMainWindow):
     def nameintooltip(self, text):
         names = re.findall(
             '<a href="http://www.sansimera.gr/namedays">([\D]+)</a>', text)
-        ttip = ''.join(n for n in names)
-        if ttip == '':
+        namedays = ''.join(n for n in names)
+        if namedays == '':
             return
-        self.systray.setToolTip(ttip)
-        self.systray.showMessage('Εορτάζουν:\n', ttip)
+        self.systray.setToolTip(namedays)
+        self.systray.showMessage('Εορτάζουν:\n', namedays)
         
     def next_try(self):
-        self.timer.singleShot(1000, self.refresh)
+        self.timer.singleShot(5000, self.refresh)
         
     def window(self):
         # BUG: assign None to the thread to
@@ -166,6 +166,7 @@ class Sansimera(QMainWindow):
             for i in range(0, len(self.lista)):
                 if self.lista[i].count('Εορτολόγιο') == 1:
                     self.nameintooltip(self.lista[i])
+                    return
                 else:
                     self.systray.showMessage('Εορτάζουν:\n', message)
             return
