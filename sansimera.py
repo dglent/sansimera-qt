@@ -6,12 +6,15 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+import platform
 import sys
 import os
 import re
 import qrc_resources
 import sansimera_data
 import sansimera_fetch
+
+__version__ = "0.1"
 
 
 class Sansimera(QMainWindow):
@@ -22,7 +25,7 @@ class Sansimera(QMainWindow):
         self.gui()
         self.lista=[]
         self.lista_pos = 0
-        
+
     def gui(self):
         self.systray = QSystemTrayIcon()
         self.icon = QIcon(':/sansimera.png')
@@ -31,10 +34,13 @@ class Sansimera(QMainWindow):
         self.menu = QMenu()
         exitAction = QAction('&Έξοδος', self)
         refreshAction = QAction('&Ανανέωση', self)
+        aboutAction = QAction('&Σχετικά', self)
         self.menu.addAction(refreshAction)
+        self.menu.addAction(aboutAction)
         self.menu.addAction(exitAction)
         self.connect(exitAction, SIGNAL('triggered()'), exit)
         self.connect(refreshAction, SIGNAL('triggered()'), self.refresh)
+        self.connect(aboutAction, SIGNAL('triggered()'), self.about)
         self.browser = QTextBrowser()
         self.browser.setOpenExternalLinks(True)
         self.setGeometry(600, 500, 400, 300)
@@ -44,12 +50,13 @@ class Sansimera(QMainWindow):
         self.systray.show()
         self.systray.activated.connect(self.activate)
         self.menu.setWindowFlags(Qt.Dialog | Qt.CustomizeWindowHint)
-        #FIX: if run with session, wait tray ??
+        #FIXME: if run with session, wait tray ??
         self.timer.singleShot(10000, self.download)
         self.browser.append('Λήψη...')
         nicon = QIcon(':/next')
         picon = QIcon(':/previous')
         ricon = QIcon(':/refresh')
+        iicon = QIcon(':/info')
         qicon = QIcon(':/exit')
         nextAction = QAction('Επόμενο', self)
         nextAction.setIcon(nicon)
@@ -60,12 +67,13 @@ class Sansimera(QMainWindow):
         previousAction.setIcon(picon)
         refreshAction.setIcon(ricon)
         exitAction.setIcon(qicon)
+        aboutAction.setIcon(iicon)
         controls = QToolBar()
         self.addToolBar(Qt.BottomToolBarArea, controls)
         controls.addAction(previousAction)
         controls.addAction(nextAction)
         controls.addAction(refreshAction)
-        
+    
     def nextItem(self):
         if len(self.lista) >= 1:
             self.browser.clear()
@@ -96,10 +104,6 @@ class Sansimera(QMainWindow):
         self.browser.append('Λήψη...')
         self.tentatives = 0
         self.download()    
-        
-    def closeEvent(self, event):
-        self.hide()
-        event.ignore()      
     
     def activate(self, reason):
         self.menu.hide()
@@ -116,23 +120,14 @@ class Sansimera(QMainWindow):
                 self.menu.hide()
             else:
                 self.menu.popup(QCursor.pos())
-        
-    def exit(self):
-        ''' Try to prevent to exit the application
-        if cklicked on close button of the window'''
-        if not self.app: return
-        self.app.started.connect(self.app.quit, type=Qt.QueuedConnection)
-        self.app.exec_()
-        qApp = None
-        self.app = None
-
+    
     def download(self):
         self.workThread = WorkThread()
         self.connect(self.workThread, SIGNAL('online(bool)'), self.status)
         self.connect(self.workThread, SIGNAL('finished()'), self.window)
         self.connect(self.workThread, SIGNAL('event(QString)'), self.addlist)
         self.workThread.start()
-        
+    
     def addlist(self, text):
         self.lista.append(text)
         
@@ -155,7 +150,7 @@ class Sansimera(QMainWindow):
         # BUG: assign None to the thread to
         # prevent crash if the button
         # refresh is pressed multiple times
-        # Is it the right way to do it ???
+        # Is it the right way to do this ???
         self.workThread = None
         if self.status_online:
             self.browser.clear()
@@ -176,6 +171,19 @@ class Sansimera(QMainWindow):
             self.next_try()
             self.tentatives += 1
             
+    def about(self):
+        self.menu.hide()
+        QMessageBox.about(self, "Εφαρμογή «Σαν σήμερα...»",
+                        """<b>sansimera-qt</b> v{0}
+                        <p>Δημήτριος Γλενταδάκης <a href="mailto:dglent@free.fr">dglent@free.fr</a>
+                        <p>Εφαρμογή πλαισίου συστήματος για την προβολή
+                        <br/>των γεγονότων από την ιστοσελίδα <a href="http://www.sansimera.gr">
+                        www.sansimera.gr</a>.
+                        <p>Άδεια χρήσης: GPLv3 <br/>Python {1} - Qt {2} - PyQt {3} σε {4}""".format(
+                        __version__, platform.python_version(),
+                        QT_VERSION_STR, PYQT_VERSION_STR, platform.system()))
+                        
+                        
 class WorkThread(QThread):
     def __init__(self):
         QThread.__init__(self)
@@ -197,4 +205,5 @@ class WorkThread(QThread):
 
 app = QApplication(sys.argv)
 prog = Sansimera()
+app.setQuitOnLastWindowClosed(False)
 app.exec_()

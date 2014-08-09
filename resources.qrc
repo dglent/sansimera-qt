@@ -1,0 +1,10 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+<file alias="next.png">images/go-next-view.png</file>
+<file alias="previous.png">images/go-previous-view.png</file>
+<file alias="refresh.png">images/view-refresh.png</file>
+<file alias="sansimera.png">images/sansimera.png</file>
+<file alias="exit.png">images/application-exit.png</file>
+<file alias="info.png">images/dialog-information.png</file>
+</qresource>
+</RCC>
