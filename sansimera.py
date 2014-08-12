@@ -97,6 +97,11 @@ class Sansimera(QMainWindow):
             return
         
     def refresh(self):
+        try:
+            if self.workThread.isRunning():
+                return
+        except AttributeError:
+            pass
         self.menu.hide()
         self.browser.clear()
         self.lista = []
@@ -143,15 +148,7 @@ class Sansimera(QMainWindow):
         self.systray.setToolTip(namedays)
         self.systray.showMessage('Εορτάζουν:\n', namedays)
         
-    def next_try(self):
-        self.timer.singleShot(5000, self.refresh)
-        
     def window(self):
-        # BUG: assign None to the thread to
-        # prevent crash if the button
-        # refresh is pressed multiple times
-        # Is it the right way to do this ???
-        self.workThread = None
         if self.status_online:
             self.browser.clear()
             self.browser.append(self.lista[0])
@@ -168,7 +165,7 @@ class Sansimera(QMainWindow):
         else:
             if self.tentatives == 10:
                 return
-            self.next_try()
+            self.timer.singleShot(5000, self.refresh)
             self.tentatives += 1
             
     def about(self):
