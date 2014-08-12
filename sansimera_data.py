@@ -1,6 +1,3 @@
-# Author: Dimitrios Glentadakis dglent@free.fr
-# License: GPLv3
-
 import re
 import urllib.request
 import os
@@ -109,7 +106,7 @@ class Sansimera_data(object):
             count += 1
 
     def days(self):
-        worldlist = [str('&nbsp;'*20 + '<b>Παγκόσμιες Ημέρες</b><br/>')]
+        worldlist = [str('<br/><b>' + '&nbsp;' * 20 + 'Παγκόσμιες Ημέρες</b><br/>')]
         lista = self.soup.find_all('a')
         for tag in lista:
             url = tag.get('href')
