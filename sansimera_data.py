@@ -19,7 +19,7 @@ class Sansimera_data(object):
         self.fetch = sansimera_fetch.Sansimera_fetch()
         self.online = True
         try:
-            arxeio = open('sansimera_html', 'r')
+            arxeio = open(self.fetch.tmppathname + '/sansimera_html', 'r')
             ss=arxeio.read()
             if ss != '':
                 self.online = True
@@ -28,10 +28,7 @@ class Sansimera_data(object):
             self.online = False
         self.month = self.fetch.monthname()
         self.sanTitle = '&nbsp;'*10 + self.month
-        try:
-            os.chdir('sansimera_cache')
-        except:
-            pass
+        os.chdir(self.fetch.tmppathname)
         if os.path.exists('sansimera_html'):
             with open('sansimera_html') as html:
                 self.soup = BeautifulSoup(html)
