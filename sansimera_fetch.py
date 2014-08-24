@@ -52,7 +52,7 @@ class Sansimera_fetch(QObject):
     def html(self):
         link = self.url()
         filename = self.tmppathname + '/sansimera_html'
-        # Create the blank file (needed for the test if it has data)
+        # Create the blank file (needed for the test if data in file)
         comm0 = 'touch ' + filename
         os.system(comm0)
         comm = 'wget --timeout=5 --user-agent="Sansimera PyQt" ' + link + ' -O ' + filename
@@ -65,7 +65,6 @@ class Sansimera_fetch(QObject):
                     self.online = False
         except:
             self.online = False
-        self.emit(SIGNAL('online(bool)'), self.online)
         
     def eortologio(self):
         req = urllib.request.Request('http://www.eortologio.gr/rss/si_el.xml')
