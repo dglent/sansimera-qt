@@ -6,6 +6,8 @@ import datetime
 import subprocess
 import glob
 import tempfile
+import urllib.request
+import re
 from PyQt4.QtCore import *
 
 class Sansimera_fetch(QObject):
@@ -64,7 +66,18 @@ class Sansimera_fetch(QObject):
         except:
             self.online = False
         self.emit(SIGNAL('online(bool)'), self.online)
-
+        
+    def eortologio(self):
+        req = urllib.request.Request('http://www.eortologio.gr/rss/si_el.xml')
+        response = urllib.request.urlopen(req)
+        page = response.read()
+        html = page.decode('cp1253')
+        text = 'Δεν υπάρχει κάποια σημαντική εορτή'
+        eortazontes = re.findall('<title>(σήμερα[\D0-9]+)</title>', html)
+        if len(eortazontes) >= 1:
+            text = eortazontes[0]
+        return text
+        
     def fetchDate(self):
         date = str(datetime.date.today())
         return date

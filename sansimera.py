@@ -131,6 +131,7 @@ class Sansimera(QMainWindow):
         self.connect(self.workThread, SIGNAL('online(bool)'), self.status)
         self.connect(self.workThread, SIGNAL('finished()'), self.window)
         self.connect(self.workThread, SIGNAL('event(QString)'), self.addlist)
+        self.connect(self.workThread, SIGNAL('names(QString)'), self.nameintooltip)
         self.workThread.start()
     
     def addlist(self, text):
@@ -140,27 +141,14 @@ class Sansimera(QMainWindow):
         self.status_online = status
 
     def nameintooltip(self, text):
-        names = re.findall(
-            '<a href="http://www.sansimera.gr/namedays">([\D]+)</a>', text)
-        namedays = ''.join(n for n in names)
-        if namedays == '':
-            return
-        self.systray.setToolTip(namedays)
-        self.systray.showMessage('Εορτάζουν:\n', namedays)
+        self.systray.setToolTip(text)
+        self.systray.showMessage('Εορτάζουν:\n', text)        
         
     def window(self):
         if self.status_online:
             self.browser.clear()
             self.browser.append(self.lista[0])
             self.lista_pos=0
-            message = 'Δεν υπάρχει κάποια σημαντική εορτή'
-            self.systray.setToolTip(message)
-            for i in range(0, len(self.lista)):
-                if self.lista[i].count('Εορτολόγιο') == 1:
-                    self.nameintooltip(self.lista[i])
-                    return
-                else:
-                    self.systray.showMessage('Εορτάζουν:\n', message)
             return
         else:
             if self.tentatives == 10:
@@ -191,12 +179,14 @@ class WorkThread(QThread):
     def run(self):
         fetch = sansimera_fetch.Sansimera_fetch()
         html = fetch.html()
+        eortazontes = fetch.eortologio()
         online = fetch.online
         data = sansimera_data.Sansimera_data()
         lista = data.getAll()
         for i in lista:
             self.emit(SIGNAL('event(QString)'), i)
         self.emit(SIGNAL('online(bool)'), bool(online))
+        self.emit(SIGNAL('names(QString)'), eortazontes)
         print('thread', online)
         return      
 
