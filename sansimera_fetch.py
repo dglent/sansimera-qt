@@ -15,7 +15,7 @@ class Sansimera_fetch(QObject):
     def __init__(self, parent=None):
         super(Sansimera_fetch, self).__init__(parent)
         self.online = False
-        # Until i find how to creat a named folder with tempfile
+        #FIXME Until i find how to creat a named folder with tempfile
         pathname = tempfile.mkdtemp()
         comm = 'mv '+ pathname + ' ' + os.path.dirname(pathname) + '/sansimera-qt'
         os.system(comm)
@@ -55,6 +55,7 @@ class Sansimera_fetch(QObject):
         # Create the blank file (needed for the test if data in file)
         comm0 = 'touch ' + filename
         os.system(comm0)
+        #FIXME to use urlib.request instead
         comm = 'wget --timeout=5 --user-agent="Sansimera PyQt" ' + link + ' -O ' + filename
         self.online = True
         os.system(comm)
