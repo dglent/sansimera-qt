@@ -25,6 +25,7 @@ class Sansimera(QMainWindow):
         self.gui()
         self.lista=[]
         self.lista_pos = 0
+        self.eortazontes_shown = False
 
     def gui(self):
         self.systray = QSystemTrayIcon()
@@ -108,6 +109,7 @@ class Sansimera(QMainWindow):
         self.systray.setToolTip('Σαν σήμερα...')
         self.browser.append('Λήψη...')
         self.tentatives = 0
+        self.eortazontes_shown = False
         self.download()    
     
     def activate(self, reason):
@@ -141,8 +143,12 @@ class Sansimera(QMainWindow):
         self.status_online = status
 
     def nameintooltip(self, text):
+        if self.eortazontes_shown:
+            return
         self.systray.setToolTip(text)
-        self.systray.showMessage('Εορτάζουν:\n', text)        
+        notifier_text = text.replace('<br/>', '\n')
+        self.systray.showMessage('Εορτάζουν:\n', notifier_text)
+        self.eortazontes_shown = True
         
     def window(self):
         if self.status_online:

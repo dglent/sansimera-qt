@@ -76,6 +76,16 @@ class Sansimera_fetch(QObject):
         eortazontes = re.findall('<title>(σήμερα[\D0-9]+)</title>', html)
         if len(eortazontes) >= 1:
             text = eortazontes[0]
+            list_names = text.split(',')
+            # Avoid to create a long line in tooltip
+            for i in range(4, len(list_names), 4):
+                try:
+                    list_names.insert(i, '<br/>')
+                    list_names[i+1] = list_names[i+1].lstrip()
+                except IndexError:
+                    break
+
+            text=(''.join(i for i in list_names))
         return text
         
     def fetchDate(self):
