@@ -50,7 +50,6 @@ class Sansimera(QMainWindow):
         self.setCentralWidget(self.browser)
         self.systray.show()
         self.systray.activated.connect(self.activate)
-        self.menu.setWindowFlags(Qt.Dialog | Qt.CustomizeWindowHint)
         #FIXME: if run with session, wait tray ??
         self.timer.singleShot(10000, self.download)
         self.browser.append('Λήψη...')
@@ -123,10 +122,8 @@ class Sansimera(QMainWindow):
                 self.show()
                 return
         if reason == 1:
-            if self.menu.isVisible():
-                self.menu.hide()
-            else:
-                self.menu.popup(QCursor.pos())
+            self.menu.hide()
+            self.menu.popup(QCursor.pos())
     
     def download(self):
         self.workThread = WorkThread()
