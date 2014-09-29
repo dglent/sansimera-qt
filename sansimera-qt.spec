@@ -1,6 +1,6 @@
 Name:           sansimera-qt
 Version:        0.1
-Release:        %mkrel 3
+Release:        %mkrel 4
 Group:          Network/News
 Summary:        Events from the site www.sansimera.gr
 License:        GPLv3
