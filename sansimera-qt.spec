@@ -1,6 +1,6 @@
 Name:           sansimera-qt
 Version:        0.1
-Release:        %mkrel 4
+Release:        %mkrel 5
 Group:          Network/News
 Summary:        Events from the site www.sansimera.gr
 License:        GPLv3
@@ -10,6 +10,7 @@ BuildArch:      noarch
 BuildRequires:  pkgconfig(QtCore)
 BuildRequires:  python-qt4-devel
 BuildRequires:  python3
+BuildRequires:  imagemagick    
 
 Requires:       python3-qt4
 Requires:       python3-sip
@@ -61,8 +62,9 @@ for file in *.py; do
 done
 #--------------------------------------------
 install -D -m644 images/sansimera.png %{buildroot}%{_iconsdir}/sansimera.png
-install -D -m644 images/sansimera16x16.png %{buildroot}%{_iconsdir}/hicolor/16x16/apps/sansimera.png
-install -D -m644 images/sansimera48x48.png %{buildroot}%{_iconsdir}/hicolor/48x48/apps/sansimera.png
+mkdir -p %{buildroot}%{_iconsdir}/hicolor/{16x16,32x32}/apps
+convert -scale 16x16 images/sansimera.png %{buildroot}%{_iconsdir}/hicolor/16x16/apps/sansimera.png
+convert -scale 32x32 images/sansimera.png %{buildroot}%{_iconsdir}/hicolor/32x32/apps/sansimera.png
 
 %files
 %dir %{_datadir}/%{name}
