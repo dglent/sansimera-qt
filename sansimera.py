@@ -14,7 +14,7 @@ import qrc_resources
 import sansimera_data
 import sansimera_fetch
 
-__version__ = "0.1"
+__version__ = "0.1.1"
 
 
 class Sansimera(QMainWindow):
@@ -45,8 +45,8 @@ class Sansimera(QMainWindow):
         self.browser = QTextBrowser()
         self.browser.setOpenExternalLinks(True)
         self.setGeometry(600, 500, 400, 300)
-        self.setWindowIcon(self.icon)          
-        self.setWindowTitle('Σαν σήμερα...')   
+        self.setWindowIcon(self.icon)
+        self.setWindowTitle('Σαν σήμερα...')
         self.setCentralWidget(self.browser)
         self.systray.show()
         self.systray.activated.connect(self.activate)
@@ -70,10 +70,14 @@ class Sansimera(QMainWindow):
         aboutAction.setIcon(iicon)
         controls = QToolBar()
         self.addToolBar(Qt.BottomToolBarArea, controls)
+        controls.setObjectName('Controls')
         controls.addAction(previousAction)
         controls.addAction(nextAction)
         controls.addAction(refreshAction)
-    
+        settings = QSettings()
+        self.restoreState(settings.value("MainWindow/State",
+                                         QByteArray()))
+
     def nextItem(self):
         if len(self.lista) >= 1:
             self.browser.clear()
@@ -95,7 +99,7 @@ class Sansimera(QMainWindow):
             self.browser.append(self.lista[self.lista_pos])
         else:
             return
-        
+
     def refresh(self):
         try:
             if self.workThread.isRunning():
@@ -109,8 +113,8 @@ class Sansimera(QMainWindow):
         self.browser.append('Λήψη...')
         self.tentatives = 0
         self.eortazontes_shown = False
-        self.download()    
-    
+        self.download()
+
     def activate(self, reason):
         self.menu.hide()
         state = self.isVisible()
@@ -124,7 +128,7 @@ class Sansimera(QMainWindow):
         if reason == 1:
             self.menu.hide()
             self.menu.popup(QCursor.pos())
-    
+
     def download(self):
         self.workThread = WorkThread()
         self.connect(self.workThread, SIGNAL('online(bool)'), self.status)
@@ -132,10 +136,10 @@ class Sansimera(QMainWindow):
         self.connect(self.workThread, SIGNAL('event(QString)'), self.addlist)
         self.connect(self.workThread, SIGNAL('names(QString)'), self.nameintooltip)
         self.workThread.start()
-    
+
     def addlist(self, text):
         self.lista.append(text)
-        
+
     def status(self, status):
         self.status_online = status
 
@@ -146,7 +150,7 @@ class Sansimera(QMainWindow):
         notifier_text = text.replace('<br/>', '\n')
         self.systray.showMessage('Εορτάζουν:\n', notifier_text)
         self.eortazontes_shown = True
-        
+
     def window(self):
         if self.status_online:
             self.browser.clear()
@@ -158,7 +162,11 @@ class Sansimera(QMainWindow):
                 return
             self.timer.singleShot(5000, self.refresh)
             self.tentatives += 1
-            
+
+    def closeEvent(self, event):
+        settings = QSettings()
+        settings.setValue("MainWindow/State", self.saveState())
+
     def about(self):
         self.menu.hide()
         QMessageBox.about(self, "Εφαρμογή «Σαν σήμερα...»",
@@ -170,15 +178,15 @@ class Sansimera(QMainWindow):
                         <p>Άδεια χρήσης: GPLv3 <br/>Python {1} - Qt {2} - PyQt {3} σε {4}""".format(
                         __version__, platform.python_version(),
                         QT_VERSION_STR, PYQT_VERSION_STR, platform.system()))
-                        
-                        
+
+
 class WorkThread(QThread):
     def __init__(self):
         QThread.__init__(self)
-        
+
     def __del__(self):
         self.wait()
- 
+
     def run(self):
         fetch = sansimera_fetch.Sansimera_fetch()
         html = fetch.html()
@@ -191,9 +199,12 @@ class WorkThread(QThread):
         self.emit(SIGNAL('online(bool)'), bool(online))
         self.emit(SIGNAL('names(QString)'), eortazontes)
         print('thread', online)
-        return      
+        return
 
 app = QApplication(sys.argv)
-prog = Sansimera()
 app.setQuitOnLastWindowClosed(False)
+app.setOrganizationName('sansimera-qt')
+app.setOrganizationDomain('sansimera-qt')
+app.setApplicationName('sansimera-qt')
+prog = Sansimera()
 app.exec_()
