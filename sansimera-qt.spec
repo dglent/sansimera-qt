@@ -1,6 +1,6 @@
 Name:           sansimera-qt
-Version:        0.1
-Release:        %mkrel 5
+Version:        0.1.1
+Release:        %mkrel 1
 Group:          Network/News
 Summary:        Events from the site www.sansimera.gr
 License:        GPLv3
@@ -10,7 +10,7 @@ BuildArch:      noarch
 BuildRequires:  pkgconfig(QtCore)
 BuildRequires:  python-qt4-devel
 BuildRequires:  python3
-BuildRequires:  imagemagick    
+BuildRequires:  imagemagick
 
 Requires:       python3-qt4
 Requires:       python3-sip
