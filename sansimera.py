@@ -14,7 +14,7 @@ import qrc_resources
 import sansimera_data
 import sansimera_fetch
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 
 class Sansimera(QMainWindow):
@@ -50,8 +50,6 @@ class Sansimera(QMainWindow):
         self.setCentralWidget(self.browser)
         self.systray.show()
         self.systray.activated.connect(self.activate)
-        #FIXME: if run with session, wait tray ??
-        self.timer.singleShot(10000, self.download)
         self.browser.append('Λήψη...')
         nicon = QIcon(':/next')
         picon = QIcon(':/previous')
@@ -75,8 +73,7 @@ class Sansimera(QMainWindow):
         controls.addAction(nextAction)
         controls.addAction(refreshAction)
         settings = QSettings()
-        self.restoreState(settings.value("MainWindow/State",
-                                         QByteArray()))
+        self.restoreState(settings.value("MainWindow/State", QByteArray()))
 
     def nextItem(self):
         if len(self.lista) >= 1:
