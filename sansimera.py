@@ -74,6 +74,7 @@ class Sansimera(QMainWindow):
         controls.addAction(refreshAction)
         settings = QSettings()
         self.restoreState(settings.value("MainWindow/State", QByteArray()))
+        self.refresh()
 
     def nextItem(self):
         if len(self.lista) >= 1:
@@ -187,14 +188,17 @@ class WorkThread(QThread):
     def run(self):
         fetch = sansimera_fetch.Sansimera_fetch()
         html = fetch.html()
-        eortazontes = fetch.eortologio()
+        try:
+            eortazontes = fetch.eortologio()
+            self.emit(SIGNAL('names(QString)'), eortazontes)
+        except:
+            print('Eortologio unavailable')
         online = fetch.online
         data = sansimera_data.Sansimera_data()
         lista = data.getAll()
         for i in lista:
             self.emit(SIGNAL('event(QString)'), i)
         self.emit(SIGNAL('online(bool)'), bool(online))
-        self.emit(SIGNAL('names(QString)'), eortazontes)
         print('thread', online)
         return
 

@@ -11,7 +11,7 @@ import re
 from PyQt4.QtCore import *
 
 class Sansimera_fetch(QObject):
-    
+
     def __init__(self, parent=None):
         super(Sansimera_fetch, self).__init__(parent)
         self.online = False
@@ -41,7 +41,7 @@ class Sansimera_fetch(QObject):
     def monthname(self):
         dico = {
             '01': 'Ιανουαρίου', '02': 'Φεβρουαρίου', '03': 'Μαρτίου',
-            '04': 'Απριλίου', '05': 'Μαίου', '06': 'Ιουνίου', 
+            '04': 'Απριλίου', '05': 'Μαίου', '06': 'Ιουνίου',
              '07': 'Ιουλίου', '08': 'Αυγούστου', '09': 'Σεπτεμβρίου',
              '10': 'Οκτωβρίου', '11': 'Νοεμβρίου', '12': 'Δεκεμβρίου'
                     }
@@ -66,7 +66,7 @@ class Sansimera_fetch(QObject):
                     self.online = False
         except:
             self.online = False
-        
+
     def eortologio(self):
         req = urllib.request.Request('http://www.eortologio.gr/rss/si_el.xml')
         response = urllib.request.urlopen(req)
@@ -87,7 +87,7 @@ class Sansimera_fetch(QObject):
 
             text=(''.join(i for i in list_names))
         return text
-        
+
     def fetchDate(self):
         date = str(datetime.date.today())
         return date
