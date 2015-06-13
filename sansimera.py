@@ -4,8 +4,15 @@
 # Author: Dimitrios Glentadakis dglent@free.fr
 # License: GPLv3
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import (
+    QThread, QTimer, Qt, QSettings, QByteArray, pyqtSignal, QT_VERSION_STR,
+    PYQT_VERSION_STR
+    )
+from PyQt5.QtGui import QIcon, QCursor
+from PyQt5.QtWidgets import(
+    QAction, QMainWindow, QApplication, QSystemTrayIcon, QMenu, QTextBrowser,
+    QToolBar, QMessageBox
+    )
 import platform
 import sys
 import os
@@ -14,7 +21,7 @@ import qrc_resources
 import sansimera_data
 import sansimera_fetch
 
-__version__ = "0.1.2"
+__version__ = "0.2.0"
 
 
 class Sansimera(QMainWindow):
@@ -33,15 +40,15 @@ class Sansimera(QMainWindow):
         self.systray.setIcon(self.icon)
         self.systray.setToolTip('Σαν σήμερα...')
         self.menu = QMenu()
-        exitAction = QAction('&Έξοδος', self)
-        refreshAction = QAction('&Ανανέωση', self)
-        aboutAction = QAction('&Σχετικά', self)
-        self.menu.addAction(refreshAction)
-        self.menu.addAction(aboutAction)
-        self.menu.addAction(exitAction)
-        self.connect(exitAction, SIGNAL('triggered()'), exit)
-        self.connect(refreshAction, SIGNAL('triggered()'), self.refresh)
-        self.connect(aboutAction, SIGNAL('triggered()'), self.about)
+        self.exitAction = QAction('&Έξοδος', self)
+        self.refreshAction = QAction('&Ανανέωση', self)
+        self.aboutAction = QAction('&Σχετικά', self)
+        self.menu.addAction(self.refreshAction)
+        self.menu.addAction(self.aboutAction)
+        self.menu.addAction(self.exitAction)
+        self.exitAction.triggered.connect(exit)
+        self.refreshAction.triggered.connect(self.refresh)
+        self.aboutAction.triggered.connect(self.about)
         self.browser = QTextBrowser()
         self.browser.setOpenExternalLinks(True)
         self.setGeometry(600, 500, 400, 300)
@@ -56,22 +63,22 @@ class Sansimera(QMainWindow):
         ricon = QIcon(':/refresh')
         iicon = QIcon(':/info')
         qicon = QIcon(':/exit')
-        nextAction = QAction('Επόμενο', self)
-        nextAction.setIcon(nicon)
-        previousAction = QAction('Προηγούμενο', self)
-        self.connect(refreshAction, SIGNAL('triggered()'), self.refresh)
-        self.connect(nextAction, SIGNAL('triggered()'), self.nextItem)
-        self.connect(previousAction, SIGNAL('triggered()'), self.previousItem)
-        previousAction.setIcon(picon)
-        refreshAction.setIcon(ricon)
-        exitAction.setIcon(qicon)
-        aboutAction.setIcon(iicon)
+        self.nextAction = QAction('Επόμενο', self)
+        self.nextAction.setIcon(nicon)
+        self.previousAction = QAction('Προηγούμενο', self)
+        self.refreshAction.triggered.connect(self.refresh)
+        self.nextAction.triggered.connect(self.nextItem)
+        self.previousAction.triggered.connect(self.previousItem)
+        self.previousAction.setIcon(picon)
+        self.refreshAction.setIcon(ricon)
+        self.exitAction.setIcon(qicon)
+        self.aboutAction.setIcon(iicon)
         controls = QToolBar()
         self.addToolBar(Qt.BottomToolBarArea, controls)
         controls.setObjectName('Controls')
-        controls.addAction(previousAction)
-        controls.addAction(nextAction)
-        controls.addAction(refreshAction)
+        controls.addAction(self.previousAction)
+        controls.addAction(self.nextAction)
+        controls.addAction(self.refreshAction)
         settings = QSettings()
         self.restoreState(settings.value("MainWindow/State", QByteArray()))
         self.refresh()
@@ -129,10 +136,10 @@ class Sansimera(QMainWindow):
 
     def download(self):
         self.workThread = WorkThread()
-        self.connect(self.workThread, SIGNAL('online(bool)'), self.status)
-        self.connect(self.workThread, SIGNAL('finished()'), self.window)
-        self.connect(self.workThread, SIGNAL('event(QString)'), self.addlist)
-        self.connect(self.workThread, SIGNAL('names(QString)'), self.nameintooltip)
+        self.workThread.online_signal[bool].connect(self.status)
+        self.workThread.finished.connect(self.window)
+        self.workThread.event['QString'].connect(self.addlist)
+        self.workThread.names['QString'].connect(self.nameintooltip)
         self.workThread.start()
 
     def addlist(self, text):
@@ -179,6 +186,10 @@ class Sansimera(QMainWindow):
 
 
 class WorkThread(QThread):
+    online_signal = pyqtSignal([bool])
+    event = pyqtSignal(['QString'])
+    names = pyqtSignal(['QString'])
+
     def __init__(self):
         QThread.__init__(self)
 
@@ -190,15 +201,15 @@ class WorkThread(QThread):
         html = fetch.html()
         try:
             eortazontes = fetch.eortologio()
-            self.emit(SIGNAL('names(QString)'), eortazontes)
+            self.names['QString'].emit(eortazontes)
         except:
             print('Eortologio unavailable')
         online = fetch.online
         data = sansimera_data.Sansimera_data()
         lista = data.getAll()
         for i in lista:
-            self.emit(SIGNAL('event(QString)'), i)
-        self.emit(SIGNAL('online(bool)'), bool(online))
+            self.event['QString'].emit(i)
+        self.online_signal[bool].emit(online)
         print('thread', online)
         return
 

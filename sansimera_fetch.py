@@ -8,7 +8,7 @@ import glob
 import tempfile
 import urllib.request
 import re
-from PyQt4.QtCore import *
+from PyQt5.QtCore import QObject
 
 class Sansimera_fetch(QObject):
 
