@@ -1,5 +1,5 @@
 Name:           sansimera-qt
-Version:        0.1.2
+Version:        0.2.0
 Release:        %mkrel 1
 Group:          Network/News
 Summary:        Events from the site www.sansimera.gr
@@ -7,12 +7,12 @@ License:        GPLv3
 URL:            https://github.com/dglent/sansimera-qt
 Source0:        %{name}-%{version}.tar.gz
 BuildArch:      noarch
-BuildRequires:  pkgconfig(QtCore)
-BuildRequires:  python-qt4-devel
+
+BuildRequires:  python-qt5-devel
 BuildRequires:  python3
 BuildRequires:  imagemagick
 
-Requires:       python3-qt4
+Requires:       python3-qt5
 Requires:       python3-sip
 Requires:       python3-pillow
 Requires:       python3-beautifulsoup4
@@ -28,7 +28,7 @@ from the website www.sansimera.gr
 %setup -q
 
 %build
-pyrcc4 -py3 -o qrc_resources.py resources.qrc
+pyrcc5 -o qrc_resources.py resources.qrc
 
 %install
 mkdir -p %{buildroot}%{_bindir}
