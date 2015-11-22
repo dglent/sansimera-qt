@@ -21,18 +21,22 @@ import qrc_resources
 import sansimera_data
 import sansimera_fetch
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 
 class Sansimera(QMainWindow):
     def __init__(self, parent=None):
         super(Sansimera, self).__init__(parent)
         self.timer = QTimer(self)
+        self.timer_reminder = QTimer(self)
+        self.timer_reminder.timeout.connect(self.reminder_tray)
+        self.timer_reminder.start(3600000)
         self.tentatives = 0
         self.gui()
         self.lista=[]
         self.lista_pos = 0
         self.eortazontes_shown = False
+        self.eortazontes_names = ''
 
     def gui(self):
         self.systray = QSystemTrayIcon()
@@ -148,12 +152,16 @@ class Sansimera(QMainWindow):
     def status(self, status):
         self.status_online = status
 
+    def reminder_tray(self):
+        notifier_text = self.eortazontes_names.replace('<br/>', '\n')
+        self.systray.showMessage('Εορτάζουν:\n', notifier_text)
+
     def nameintooltip(self, text):
+        self.eortazontes_names = text.replace('<br/>', '\n')
         if self.eortazontes_shown:
             return
         self.systray.setToolTip(text)
-        notifier_text = text.replace('<br/>', '\n')
-        self.systray.showMessage('Εορτάζουν:\n', notifier_text)
+        self.systray.showMessage('Εορτάζουν:\n', self.eortazontes_names)
         self.eortazontes_shown = True
 
     def window(self):

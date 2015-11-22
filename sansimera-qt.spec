@@ -1,5 +1,5 @@
 Name:           sansimera-qt
-Version:        0.2.0
+Version:        0.2.1
 Release:        %mkrel 1
 Group:          Network/News
 Summary:        Events from the site www.sansimera.gr
