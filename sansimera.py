@@ -15,8 +15,6 @@ from PyQt5.QtWidgets import(
     )
 import platform
 import sys
-import os
-import re
 import qrc_resources
 import sansimera_data
 import sansimera_fetch
@@ -33,7 +31,7 @@ class Sansimera(QMainWindow):
         self.timer_reminder.start(3600000)
         self.tentatives = 0
         self.gui()
-        self.lista=[]
+        self.lista = []
         self.lista_pos = 0
         self.eortazontes_shown = False
         self.eortazontes_names = ''
@@ -168,7 +166,7 @@ class Sansimera(QMainWindow):
         if self.status_online:
             self.browser.clear()
             self.browser.append(self.lista[0])
-            self.lista_pos=0
+            self.lista_pos = 0
             return
         else:
             if self.tentatives == 10:
@@ -206,7 +204,7 @@ class WorkThread(QThread):
 
     def run(self):
         fetch = sansimera_fetch.Sansimera_fetch()
-        html = fetch.html()
+        fetch.html()
         try:
             eortazontes = fetch.eortologio()
             self.names['QString'].emit(eortazontes)

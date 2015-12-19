@@ -2,7 +2,6 @@ import re
 import urllib.request
 import os
 import sansimera_fetch
-import subprocess
 from bs4 import BeautifulSoup
 
 try:
@@ -20,7 +19,7 @@ class Sansimera_data(object):
         self.online = True
         try:
             arxeio = open(self.fetch.tmppathname + '/sansimera_html', 'r')
-            ss=arxeio.read()
+            ss = arxeio.read()
             if ss != '':
                 self.online = True
             arxeio.close()
@@ -42,7 +41,8 @@ class Sansimera_data(object):
         if len(yeartoBold) > 0:
             self.year = yeartoBold[0]
             if self.bC:
-                self.year = yeartoBold[0].replace('</div>', ' π.Χ.</div>', re.UNICODE)
+                self.year = yeartoBold[0].replace('</div>', ' π.Χ.</div>',
+                                                  re.UNICODE)
             self.year = '<b>'+self.year[5:-6]+':</b>'
             text = text.replace(yeartoBold[0], '')
         try:
@@ -50,7 +50,7 @@ class Sansimera_data(object):
             iconName = os.path.basename(iconUrl)
             urllib.request.urlretrieve(iconUrl, iconName)
             im = Image.open(iconName)
-            newim = im.resize((82,64), Image.ANTIALIAS)
+            newim = im.resize((82, 64), Image.ANTIALIAS)
             newim.save(iconName)
             # Convert the url to local name
             newText = text.replace(iconUrl, iconName)
@@ -61,7 +61,7 @@ class Sansimera_data(object):
     def events(self):
         birthDeath = ''
         listd = self.soup.find_all('div')
-        count=0
+        count = 0
         for div in listd:
             tag = div.get('class')
             if isinstance(tag, list):
@@ -71,10 +71,12 @@ class Sansimera_data(object):
                         didYouKnow = (str(listd[count]))
                         # Convert url to local path
                         didYouKnow_url_local = self.getImage(didYouKnow)
-                        self.allList.append(str('<br/>' + didYouKnow_url_local))
+                        self.allList.append(str('<br/>' +
+                                                didYouKnow_url_local))
                     # Find the He Said ...
                     if tag[0] == 'quote' and tag[1] == 'white':
-                        said = ('<br/>' + '&nbsp;'*10 + '<b>Είπε:</b>' + str(listd[count]))
+                        said = ('<br/>' + '&nbsp;'*10 + '<b>Είπε:</b>' +
+                                str(listd[count]))
                         whoSaid = str(listd[count+3])
                         # Convert url to local path
                         who_url_local = self.getImage(whoSaid)
@@ -93,17 +95,20 @@ class Sansimera_data(object):
                     eventText = str(listd[count])
                     # Find if before Christ
                     divBC = str(listd[count-1].p)
-                    bC = re.findall('<span>[\.π\s\.Χ]+</span>', divBC, re.UNICODE)
+                    bC = re.findall('<span>[\.π\s\.Χ]+</span>', divBC,
+                                    re.UNICODE)
                     if len(bC) == 1:
                             self.bC = True
                     else:
                         self.bC = False
                     eventText_url_local = self.getImage(eventText)
-                    self.allList.append(str('<br/>' + event+self.year+birthDeath+eventText_url_local))
+                    self.allList.append(str('<br/>' + event + self.year +
+                                            birthDeath+eventText_url_local))
             count += 1
 
     def days(self):
-        worldlist = [str('<br/><b>' + '&nbsp;' * 20 + 'Παγκόσμιες Ημέρες</b><br/>')]
+        worldlist = [str('<br/><b>' + '&nbsp;' * 20 +
+                         'Παγκόσμιες Ημέρες</b><br/>')]
         lista = self.soup.find_all('a')
         for tag in lista:
             url = tag.get('href')
@@ -113,7 +118,8 @@ class Sansimera_data(object):
                         day = 'w'
                     elif 'namedays' in url:
                         day = 'n'
-                        title = self.sanTitle + '<br/>' + '&nbsp;'*20 + '<b>Εορτολόγιο</b><br/>'
+                        title = (self.sanTitle + '<br/>' + '&nbsp;'*20 +
+                                 '<b>Εορτολόγιο</b><br/>')
                     tag = str(tag)
                     if 'Εορτολόγιο' in tag or 'Παγκόσμιες Ημέρες' in tag:
                         continue
@@ -131,16 +137,18 @@ class Sansimera_data(object):
 
     def getAll(self):
         self.allList = []
-        print('getall',self.online)
+        print('getall', self.online)
         if self.online:
             self.events()
             self.days()
         if len(self.allList) == 0:
-            self.allList.append('<br/>' + self.sanTitle + '<br/><br/>Δεν βρέθηκαν γεγονότα, ελέγξτε τη σύνδεσή σας.')
+            self.allList.append('<br/>' + self.sanTitle +
+                                '<br/><br/>Δεν βρέθηκαν γεγονότα,'
+                                'ελέγξτε τη σύνδεσή σας.')
         return self.allList
 
 if __name__ == "__main__":
-    a1=Sansimera_data()
+    a1 = Sansimera_data()
     lista = a1.getAll()
     for i in lista:
         print(i)

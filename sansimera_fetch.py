@@ -3,21 +3,21 @@
 
 import os
 import datetime
-import subprocess
-import glob
 import tempfile
 import urllib.request
 import re
 from PyQt5.QtCore import QObject
+
 
 class Sansimera_fetch(QObject):
 
     def __init__(self, parent=None):
         super(Sansimera_fetch, self).__init__(parent)
         self.online = False
-        #FIXME Until i find how to creat a named folder with tempfile
+        # FIXME Until i find how to creat a named folder with tempfile
         pathname = tempfile.mkdtemp()
-        comm = 'mv '+ pathname + ' ' + os.path.dirname(pathname) + '/sansimera-qt'
+        comm = ('mv ' + pathname + ' ' + os.path.dirname(pathname) +
+                '/sansimera-qt')
         os.system(comm)
         self.tmppathname = os.path.dirname(pathname) + '/sansimera-qt'
 
@@ -39,14 +39,13 @@ class Sansimera_fetch(QObject):
         return self.ponth
 
     def monthname(self):
-        dico = {
-            '01': 'Ιανουαρίου', '02': 'Φεβρουαρίου', '03': 'Μαρτίου',
-            '04': 'Απριλίου', '05': 'Μαίου', '06': 'Ιουνίου',
-             '07': 'Ιουλίου', '08': 'Αυγούστου', '09': 'Σεπτεμβρίου',
-             '10': 'Οκτωβρίου', '11': 'Νοεμβρίου', '12': 'Δεκεμβρίου'
-                    }
+        dico = {'01': 'Ιανουαρίου', '02': 'Φεβρουαρίου', '03': 'Μαρτίου',
+                '04': 'Απριλίου', '05': 'Μαίου', '06': 'Ιουνίου',
+                '07': 'Ιουλίου', '08': 'Αυγούστου', '09': 'Σεπτεμβρίου',
+                '10': 'Οκτωβρίου', '11': 'Νοεμβρίου', '12': 'Δεκεμβρίου'}
         month = self.ponth()
-        self.im = str(' ' * 10 + '...Σαν σήμερα ' + self.pay() + ' ' + dico[month] + '\n')
+        self.im = str(' ' * 10 + '...Σαν σήμερα ' + self.pay() + ' ' +
+                      dico[month] + '\n')
         return self.im
 
     def html(self):
@@ -55,8 +54,9 @@ class Sansimera_fetch(QObject):
         # Create the blank file (needed for the test if data in file)
         comm0 = 'touch ' + filename
         os.system(comm0)
-        #FIXME to use urlib.request instead
-        comm = 'wget --timeout=5 --user-agent="Sansimera PyQt" ' + link + ' -O ' + filename
+        # FIXME to use urlib.request instead
+        comm = ('wget --timeout=5 --user-agent="Sansimera PyQt" ' + link +
+                ' -O ' + filename)
         self.online = True
         os.system(comm)
         try:
@@ -85,7 +85,7 @@ class Sansimera_fetch(QObject):
                 except IndexError:
                     break
 
-            text=(''.join(i for i in list_names))
+            text = (''.join(i for i in list_names))
         return text
 
     def fetchDate(self):
@@ -93,6 +93,5 @@ class Sansimera_fetch(QObject):
         return date
 
 if __name__ == "__main__":
-    a1=Sansimera_fetch()
-    lista=a1.html()
-
+    a1 = Sansimera_fetch()
+    lista = a1.html()
