@@ -1,5 +1,5 @@
 
-A systemtray application which shows the events of the day back in the history from the site www.sansimera.gr and the namedays from eortologio.gr
+A systemtray application which shows the events of the day back in the history from the site www.sansimera.gr and the namedays from www.eortologio.gr
 
 Requirements:
 
