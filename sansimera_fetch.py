@@ -67,6 +67,18 @@ class Sansimera_fetch(QObject):
         except:
             self.online = False
 
+    def sinaxaristis_full(self):
+        names = []
+        req_full = urllib.request.Request('http://www.eortologio.gr/rss/si_el_full.xml')
+        reponse_full = urllib.request.urlopen(req_full)
+        page_full = reponse_full.read()
+        html_full = page_full.decode('cp1253')
+        eortazontes = re.findall('<title>(σήμερα[\D0-9]+)</title>', html_full)
+        if len(eortazontes) >= 1:
+            text = eortazontes[0]
+            names = text.split(',')
+        return names
+
     def eortologio(self):
         req = urllib.request.Request('http://www.eortologio.gr/rss/si_el.xml')
         response = urllib.request.urlopen(req)
@@ -74,9 +86,11 @@ class Sansimera_fetch(QObject):
         html = page.decode('cp1253')
         text = 'Δεν υπάρχει κάποια σημαντική εορτή'
         eortazontes = re.findall('<title>(σήμερα[\D0-9]+)</title>', html)
+        sinaxari = self.sinaxaristis_full()
         if len(eortazontes) >= 1:
             text = eortazontes[0]
             list_names = text.split(',')
+            list_names += sinaxari
             # Avoid to create a long line in tooltip
             for i in range(4, len(list_names), 4):
                 try:
@@ -84,7 +98,6 @@ class Sansimera_fetch(QObject):
                     list_names[i+1] = list_names[i+1].lstrip()
                 except IndexError:
                     break
-
             text = (''.join(i for i in list_names))
         return text
 

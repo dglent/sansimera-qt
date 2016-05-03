@@ -19,7 +19,7 @@ import qrc_resources
 import sansimera_data
 import sansimera_fetch
 
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 
 class Sansimera(QMainWindow):
@@ -156,6 +156,7 @@ class Sansimera(QMainWindow):
 
     def nameintooltip(self, text):
         self.eortazontes_names = text.replace('<br/>', '\n')
+
         if self.eortazontes_shown:
             return
         self.systray.setToolTip(text)
@@ -163,6 +164,7 @@ class Sansimera(QMainWindow):
         self.eortazontes_shown = True
 
     def window(self):
+        self.lista.append(self.eortazontes_names)
         if self.status_online:
             self.browser.clear()
             self.browser.append(self.lista[0])
