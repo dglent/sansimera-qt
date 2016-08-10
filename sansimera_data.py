@@ -1,5 +1,5 @@
 import re
-import urllib.request
+import requests
 import os
 import sansimera_fetch
 from bs4 import BeautifulSoup
@@ -26,7 +26,7 @@ class Sansimera_data(object):
         except:
             self.online = False
         self.month = self.fetch.monthname()
-        self.sanTitle = '&nbsp;'*10 + self.month
+        self.sanTitle = '&nbsp;' * 10 + self.month
         os.chdir(self.fetch.tmppathname)
         if os.path.exists('sansimera_html'):
             with open('sansimera_html') as html:
@@ -46,9 +46,13 @@ class Sansimera_data(object):
             self.year = '<b>'+self.year[5:-6]+':</b>'
             text = text.replace(yeartoBold[0], '')
         try:
-            iconUrl = re.findall('src="(http://[a-zA-Z./_0-9-]+)', text)[0]
+            iconUrl = re.findall('src="(https://[a-zA-Z./_0-9-]+)', text)[0]
             iconName = os.path.basename(iconUrl)
-            urllib.request.urlretrieve(iconUrl, iconName)
+            req = requests.get(iconUrl, stream=True,
+                               headers={'User-agent': 'Mozilla/5.0'})
+            if req.status_code == 200:
+                with open(iconName, 'wb') as iconfile:
+                    iconfile.write(req.content)
             im = Image.open(iconName)
             newim = im.resize((82, 64), Image.ANTIALIAS)
             newim.save(iconName)
@@ -56,6 +60,7 @@ class Sansimera_data(object):
             newText = text.replace(iconUrl, iconName)
             return newText
         except:
+            print('error in getImage')
             return text
 
     def events(self):
@@ -67,12 +72,16 @@ class Sansimera_data(object):
             if isinstance(tag, list):
                 if len(tag) > 1:
                     # Find the Did You Know ...
-                    if tag[0] == 'over' and tag[1] == 'mb10':
-                        didYouKnow = (str(listd[count]))
-                        # Convert url to local path
-                        didYouKnow_url_local = self.getImage(didYouKnow)
-                        self.allList.append(str('<br/>' +
-                                                didYouKnow_url_local))
+                    if tag[0] == 'widget' and tag[1] == 'col-xs-12':
+                        h3 = div.find_all('h3')
+                        if len(h3) == 1:
+                            h3 = h3[0]
+                            h3 = h3.text
+                            if h3 == 'ΗΞΕΡΕΣ ΟΤΙ...':
+                                didYouKnow = (str(listd[count]))
+                                # Convert url to local path
+                                didYouKnow_url_local = self.getImage(didYouKnow)
+                                self.allList.append(str('<br/>' + didYouKnow_url_local))
                     # Find the He Said ...
                     if tag[0] == 'quote' and tag[1] == 'white':
                         said = ('<br/>' + '&nbsp;'*10 + '<b>Είπε:</b>' +
