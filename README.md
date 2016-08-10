@@ -7,4 +7,5 @@ Requirements:
     python3-pillow or python3-imaging
     python3-beautifulsoup4 or python3-bs4
     python3-urllib3
+    python3-requests
     wget
