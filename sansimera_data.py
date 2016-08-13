@@ -14,7 +14,7 @@ class Sansimera_data(object):
     def __init__(self):
         self.allList = []
         self.addBC = False
-        self.baseurl = 'http://www.sansimera.gr/'
+        self.baseurl = 'https://www.sansimera.gr/'
         self.fetch = sansimera_fetch.Sansimera_fetch()
         self.online = True
         try:
@@ -33,11 +33,13 @@ class Sansimera_data(object):
                 self.soup = BeautifulSoup(html)
 
     def getImage(self, text):
+        '''Convert url to local path.
+           Download and resize images'''
         relativeUrls = re.findall('href="(/[a-zA-Z./_0-9-]+)', text)
         yeartoBold = re.findall('(<div>[0-9]+</div>)', text)
         if len(relativeUrls) > 0:
             for relurl in relativeUrls:
-                text = text.replace(relurl, self.baseurl[:-1]+relurl)
+                text = text.replace(relurl, self.baseurl[:-1] + relurl)
         if len(yeartoBold) > 0:
             self.year = yeartoBold[0]
             if self.bC:
@@ -60,7 +62,7 @@ class Sansimera_data(object):
             newText = text.replace(iconUrl, iconName)
             return newText
         except:
-            print('error in getImage')
+            print('getImage failed: ', text)
             return text
 
     def events(self):
@@ -81,15 +83,13 @@ class Sansimera_data(object):
                                 didYouKnow = (str(listd[count]))
                                 # Convert url to local path
                                 didYouKnow_url_local = self.getImage(didYouKnow)
-                                self.allList.append(str('<br/>' + didYouKnow_url_local))
+                                self.allList.append(str(didYouKnow_url_local))
                     # Find the He Said ...
-                    if tag[0] == 'quote' and tag[1] == 'white':
-                        said = ('<br/>' + '&nbsp;'*10 + '<b>Είπε:</b>' +
-                                str(listd[count]))
-                        whoSaid = str(listd[count+3])
+                    if tag[0] == 'widget' and tag[1] == 'widget-quotes':
+                        said = str(listd[count])
                         # Convert url to local path
-                        who_url_local = self.getImage(whoSaid)
-                        self.allList.append(said + who_url_local)
+                        who_url_local = self.getImage(said)
+                        self.allList.append(who_url_local)
                 if tag[0] == 'timeline-tab-content':
                     event = listd[count].get('id')
                     if event == 'Deaths':
