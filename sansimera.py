@@ -8,7 +8,8 @@ from PyQt5.QtCore import (
     QThread, QTimer, Qt, QSettings, QByteArray, pyqtSignal, QT_VERSION_STR,
     PYQT_VERSION_STR
     )
-from PyQt5.QtGui import QIcon, QCursor
+from PyQt5.QtGui import QIcon, QCursor, QTextCursor
+
 from PyQt5.QtWidgets import(
     QAction, QMainWindow, QApplication, QSystemTrayIcon, QMenu, QTextBrowser,
     QToolBar, QMessageBox
@@ -19,7 +20,7 @@ import qrc_resources
 import sansimera_data
 import sansimera_fetch
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 
 class Sansimera(QMainWindow):
@@ -93,6 +94,7 @@ class Sansimera(QMainWindow):
             else:
                 self.lista_pos = 0
             self.browser.append(self.lista[self.lista_pos])
+            self.browser.moveCursor(QTextCursor.Start)
         else:
             return
 
@@ -104,6 +106,7 @@ class Sansimera(QMainWindow):
             else:
                 self.lista_pos -= 1
             self.browser.append(self.lista[self.lista_pos])
+            self.browser.moveCursor(QTextCursor.Start)
         else:
             return
 
@@ -157,14 +160,24 @@ class Sansimera(QMainWindow):
     def nameintooltip(self, text):
         self.eortazontes_names = text.replace('<br/>', '\n')
 
+        eortazontes_names = self.eortazontes_names.replace(
+            '<a href="http://www.eortologio.gr/sample/eortologio_iso_xml_xhtml.php">www.eortologio.gr</a>',
+            'www.eortologio.gr')
+        eortazontes_names = eortazontes_names.replace(
+            '<a href="http://www.synaxari.gr/sample/eortologio_utf.php">www.synaxari.gr</a>',
+            'www.synaxari.gr')
+        eortazontes_names = eortazontes_names.replace('<p>', '')
+        eortazontes_names = eortazontes_names.replace('<div>', '')
         if self.eortazontes_shown:
             return
-        self.systray.setToolTip(text)
-        self.systray.showMessage('Εορτάζουν:\n', self.eortazontes_names)
+        text = text.replace('<p>', '')
+        self.systray.setToolTip(text.replace('<div>', ''))
+
+        self.systray.showMessage('Εορτάζουν:\n', eortazontes_names)
         self.eortazontes_shown = True
 
     def window(self):
-        self.lista.append(self.eortazontes_names)
+        self.lista.append('<div class=""></div>' + self.eortazontes_names)
         if self.status_online:
             self.browser.clear()
             self.browser.append(self.lista[0])
@@ -188,6 +201,9 @@ class Sansimera(QMainWindow):
                         <p>Εφαρμογή πλαισίου συστήματος για την προβολή
                         <br/>των γεγονότων από την ιστοσελίδα <a href="http://www.sansimera.gr">
                         www.sansimera.gr</a>.
+                        <br/>Πηγή εορτολογίου: <a href="http://www.eortologio.gr">
+                        www.eortologio.gr</a>, <a href="http://www.synaxari.gr">
+                        www.synaxari.gr</a>
                         <p>Άδεια χρήσης: GPLv3 <br/>Python {1} - Qt {2} - PyQt {3} σε {4}""".format(
                         __version__, platform.python_version(),
                         QT_VERSION_STR, PYQT_VERSION_STR, platform.system()))

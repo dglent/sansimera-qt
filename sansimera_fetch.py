@@ -87,6 +87,7 @@ class Sansimera_fetch(QObject):
         text = 'Δεν υπάρχει κάποια σημαντική εορτή'
         eortazontes = re.findall('<title>(σήμερα[\D0-9]+)</title>', html)
         sinaxari = self.sinaxaristis_full()
+        sinaxari.insert(0, '<p><br/>')
         if len(eortazontes) >= 1:
             text = eortazontes[0]
             list_names = text.split(',')
@@ -94,11 +95,13 @@ class Sansimera_fetch(QObject):
             # Avoid to create a long line in tooltip
             for i in range(4, len(list_names), 4):
                 try:
-                    list_names.insert(i, '<br/>')
+                    list_names.insert(i, '<div><br/>')
                     list_names[i+1] = list_names[i+1].lstrip()
                 except IndexError:
                     break
             text = (''.join(i for i in list_names))
+            text = text.replace('www.eortologio.gr', '<a href="http://www.eortologio.gr/sample/eortologio_iso_xml_xhtml.php">www.eortologio.gr</a>')
+            text = text.replace('www.synaxari.gr', '<a href="http://www.synaxari.gr/sample/eortologio_utf.php">www.synaxari.gr</a>')
         return text
 
     def fetchDate(self):

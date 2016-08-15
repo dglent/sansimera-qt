@@ -1,5 +1,5 @@
 Name:           sansimera-qt
-Version:        0.2.1
+Version:        0.4.0
 Release:        %mkrel 1
 Group:          Network/News
 Summary:        Events from the site www.sansimera.gr
@@ -17,6 +17,7 @@ Requires:       python3-sip
 Requires:       python3-pillow
 Requires:       python3-beautifulsoup4
 Requires:       python3-urllib3
+Requires:       python3-requests
 Requires:       wget
 
 

@@ -36,17 +36,20 @@ class Sansimera_data(object):
         '''Convert url to local path.
            Download and resize images'''
         relativeUrls = re.findall('href="(/[a-zA-Z./_0-9-]+)', text)
-        yeartoBold = re.findall('(<div>[0-9]+</div>)', text)
+        yeartoBold = re.findall('href="/reviews/([0-9]+)">', text)
+        if len(yeartoBold) == 0:
+            yeartoBold = re.findall('<div class="time text-primary">([0-9]+)</div>', text)
         if len(relativeUrls) > 0:
             for relurl in relativeUrls:
                 text = text.replace(relurl, self.baseurl[:-1] + relurl)
         if len(yeartoBold) > 0:
             self.year = yeartoBold[0]
+            bC = ''
+
             if self.bC:
-                self.year = yeartoBold[0].replace('</div>', ' π.Χ.</div>',
-                                                  re.UNICODE)
-            self.year = '<b>'+self.year[5:-6]+':</b>'
-            text = text.replace(yeartoBold[0], '')
+                bC = ' π.Χ.'
+            self.year = '<b>' + self.year + bC + ': </b><br/>'
+        iconUrl = 'None'
         try:
             iconUrl = re.findall('src="(https://[a-zA-Z./_0-9-]+)', text)[0]
             iconName = os.path.basename(iconUrl)
@@ -62,11 +65,10 @@ class Sansimera_data(object):
             newText = text.replace(iconUrl, iconName)
             return newText
         except:
-            print('getImage failed: ', text)
+            print('getImage failed: ', '- URL: ', iconUrl, ' - Text :', text)
             return text
 
-    def events(self):
-        birthDeath = ''
+    def said_know(self):
         listd = self.soup.find_all('div')
         count = 0
         for div in listd:
@@ -76,6 +78,7 @@ class Sansimera_data(object):
                     # Find the Did You Know ...
                     if tag[0] == 'widget' and tag[1] == 'col-xs-12':
                         h3 = div.find_all('h3')
+
                         if len(h3) == 1:
                             h3 = h3[0]
                             h3 = h3.text
@@ -90,30 +93,44 @@ class Sansimera_data(object):
                         # Convert url to local path
                         who_url_local = self.getImage(said)
                         self.allList.append(who_url_local)
-                if tag[0] == 'timeline-tab-content':
-                    event = listd[count].get('id')
-                    if event == 'Deaths':
-                        event = self.sanTitle
-                        birthDeath = '<br/><small><i>Θάνατος</i></small>'
-                    elif event == 'Births':
-                        event = self.sanTitle
-                        birthDeath = '<br/><small><i>Γέννηση</small></i>'
-                    else:
-                        event = self.sanTitle
-                if tag[0] == 'timeline-item' and tag[1] == 'clearfix':
-                    eventText = str(listd[count])
-                    # Find if before Christ
-                    divBC = str(listd[count-1].p)
-                    bC = re.findall('<span>[\.π\s\.Χ]+</span>', divBC,
-                                    re.UNICODE)
-                    if len(bC) == 1:
-                            self.bC = True
-                    else:
-                        self.bC = False
-                    eventText_url_local = self.getImage(eventText)
-                    self.allList.append(str('<br/>' + event + self.year +
-                                            birthDeath+eventText_url_local))
             count += 1
+
+    def events(self):
+        ''' Find the events, the births and the deaths '''
+        events = self.soup.find_all('dl')
+        count = 0
+        for ev in events:
+            self.event_parser(ev, count)
+            count += 1
+
+    def event_parser(self, event, count):
+        event = str(event)
+        event = event.split('</dd>')
+        birth_death = ''
+        for ev in event:
+            if ev.count('<dt class="text-xs-center">π.Χ.</dt>') == 1:
+                self.bC = True
+            elif ev.count('<dt class="text-xs-center hidden-print ">μ.Χ.</dt>') == 1:
+                self.bC = False
+                ev = ev.replace('μ.Χ.', '')
+            eventText_url_local = self.getImage(ev)
+            # Remove the link with the year avbove the image
+            # Eg:'<a class="text-primary no-underline" href="https://www.sansimera.gr/reviews/1989">1989</a>'
+            url_year_to_delete = re.findall(
+                                '<a class="text-primary no-underline" [\w=":/.>\d]+</a>',
+                                eventText_url_local)
+            try:
+                eventText_url_local = eventText_url_local.replace(url_year_to_delete[0], '')
+            except:
+                print('Couldn\'t remove year url for: ', eventText_url_local)
+                pass
+            if ev.count('<small>(Γεν. ') or count == 2:
+                birth_death = '<br/><small><i>Θάνατος</i></small><br/>'
+            elif count == 1:
+                birth_death = '<br/><small><i>Γέννηση</small></i><br/>'
+            if eventText_url_local.count('href="https://') >= 1:
+                self.allList.append(str('<br/>' + self.sanTitle + self.year +
+                                        birth_death + eventText_url_local))
 
     def days(self):
         worldlist = [str('<br/><b>' + '&nbsp;' * 20 +
@@ -149,6 +166,7 @@ class Sansimera_data(object):
         print('getall', self.online)
         if self.online:
             self.events()
+            self.said_know()
             self.days()
         if len(self.allList) == 0:
             self.allList.append('<br/>' + self.sanTitle +
@@ -160,5 +178,6 @@ if __name__ == "__main__":
     a1 = Sansimera_data()
     lista = a1.getAll()
     for i in lista:
+        print('====================')
         print(i)
         input()
