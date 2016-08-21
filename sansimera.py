@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import(
     QAction, QMainWindow, QApplication, QSystemTrayIcon, QMenu, QTextBrowser,
     QToolBar, QMessageBox
     )
+import re
 import platform
 import sys
 import qrc_resources
@@ -155,25 +156,19 @@ class Sansimera(QMainWindow):
 
     def reminder_tray(self):
         notifier_text = self.eortazontes_names.replace('<br/>', '\n')
+        urltexts = re.findall('(<a [\S]+php">)', notifier_text)
+        urltexts.extend(['</a>', '<p>', '<div>'])
+        for i in urltexts:
+            notifier_text = notifier_text.replace(i, '')
         self.systray.showMessage('Εορτάζουν:\n', notifier_text)
+        self.systray.setToolTip('Εορτάζουν:\n' + notifier_text)
 
     def nameintooltip(self, text):
         self.eortazontes_names = text.replace('<br/>', '\n')
-
-        eortazontes_names = self.eortazontes_names.replace(
-            '<a href="http://www.eortologio.gr/sample/eortologio_iso_xml_xhtml.php">www.eortologio.gr</a>',
-            'www.eortologio.gr')
-        eortazontes_names = eortazontes_names.replace(
-            '<a href="http://www.synaxari.gr/sample/eortologio_utf.php">www.synaxari.gr</a>',
-            'www.synaxari.gr')
-        eortazontes_names = eortazontes_names.replace('<p>', '')
-        eortazontes_names = eortazontes_names.replace('<div>', '')
         if self.eortazontes_shown:
             return
-        text = text.replace('<p>', '')
-        self.systray.setToolTip(text.replace('<div>', ''))
 
-        self.systray.showMessage('Εορτάζουν:\n', eortazontes_names)
+        self.reminder_tray()
         self.eortazontes_shown = True
 
     def window(self):
@@ -198,10 +193,12 @@ class Sansimera(QMainWindow):
         QMessageBox.about(self, "Εφαρμογή «Σαν σήμερα...»",
                         """<b>sansimera-qt</b> v{0}
                         <p>Δημήτριος Γλενταδάκης <a href="mailto:dglent@free.fr">dglent@free.fr</a>
+                        <br/>Ιστοσελίδα: <a href="https://github.com/dglent/sansimera-qt">
+                        github sansimera-qt</a>
                         <p>Εφαρμογή πλαισίου συστήματος για την προβολή
                         <br/>των γεγονότων από την ιστοσελίδα <a href="http://www.sansimera.gr">
-                        www.sansimera.gr</a>.
-                        <br/>Πηγή εορτολογίου: <a href="http://www.eortologio.gr">
+                        www.sansimera.gr</a><br/>
+                        Πηγή εορτολογίου: <a href="http://www.eortologio.gr">
                         www.eortologio.gr</a>, <a href="http://www.synaxari.gr">
                         www.synaxari.gr</a>
                         <p>Άδεια χρήσης: GPLv3 <br/>Python {1} - Qt {2} - PyQt {3} σε {4}""".format(
@@ -244,3 +241,4 @@ app.setOrganizationDomain('sansimera-qt')
 app.setApplicationName('sansimera-qt')
 prog = Sansimera()
 app.exec_()
+
