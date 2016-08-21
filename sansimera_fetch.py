@@ -100,7 +100,7 @@ class Sansimera_fetch(QObject):
                 except IndexError:
                     break
             text = (''.join(i for i in list_names))
-            text = text.replace('www.eortologio.gr', '<a href="http://www.eortologio.gr/sample/eortologio_iso_xml_xhtml.php">www.eortologio.gr</a>')
+            text = text.replace('www.eortologio.gr', '<a href="http://www.eortologio.gr/sample/eortologio_utf.php">www.eortologio.gr</a>')
             text = text.replace('www.synaxari.gr', '<a href="http://www.synaxari.gr/sample/eortologio_utf.php">www.synaxari.gr</a>')
         return text
 
