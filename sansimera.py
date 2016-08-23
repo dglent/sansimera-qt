@@ -155,16 +155,19 @@ class Sansimera(QMainWindow):
         self.status_online = status
 
     def reminder_tray(self):
-        notifier_text = self.eortazontes_names.replace('<br/>', '\n')
-        urltexts = re.findall('(<a [\S]+php">)', notifier_text)
+        text = self.eortazontes_names.replace('<br/>', '\n')
+        urltexts = re.findall('(<a [\S]+php">)', text)
         urltexts.extend(['</a>', '<p>', '<div>'])
+        show_notifier_text = text
         for i in urltexts:
-            notifier_text = notifier_text.replace(i, '')
-        self.systray.showMessage('Εορτάζουν:\n', notifier_text)
-        self.systray.setToolTip('Εορτάζουν:\n' + notifier_text)
+            show_notifier_text = show_notifier_text.replace(i, '')
+        show_notifier_text = show_notifier_text.replace('\n\n', '\n')
+        show_notifier_text = show_notifier_text.replace('www.eortologio.gr)', 'www.eortologio.gr)\n')
+        self.systray.showMessage('Εορτάζουν:\n', show_notifier_text)
+        self.systray.setToolTip('Εορτάζουν:\n' + show_notifier_text)
 
     def nameintooltip(self, text):
-        self.eortazontes_names = text.replace('<br/>', '\n')
+        self.eortazontes_names = text#.replace('<br/>', '\n')
         if self.eortazontes_shown:
             return
 

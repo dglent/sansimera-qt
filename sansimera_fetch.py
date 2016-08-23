@@ -23,7 +23,7 @@ class Sansimera_fetch(QObject):
 
     def url(self):
         imerominia = str(self.pay()+self.ponth())
-        self.url = 'http://www.sansimera.gr/almanac/' + imerominia
+        self.url = 'https://www.sansimera.gr/almanac/' + imerominia
         return self.url
 
     def pay(self):
@@ -99,6 +99,11 @@ class Sansimera_fetch(QObject):
                     list_names[i+1] = list_names[i+1].lstrip()
                 except IndexError:
                     break
+            # Make new line if the string is too long
+            for i in list_names:
+                if len(i) > 50:
+                    ind = list_names.index(i)
+                    list_names[ind] = i + '<br/>'
             text = (''.join(i for i in list_names))
             text = text.replace('www.eortologio.gr', '<a href="http://www.eortologio.gr/sample/eortologio_utf.php">www.eortologio.gr</a>')
             text = text.replace('www.synaxari.gr', '<a href="http://www.synaxari.gr/sample/eortologio_utf.php">www.synaxari.gr</a>')
