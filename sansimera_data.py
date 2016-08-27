@@ -103,6 +103,26 @@ class Sansimera_data(object):
             self.event_parser(ev, count)
             count += 1
 
+    def remove_year(self, text):
+        # Remove the link with the year avbove the image
+        # Eg:'<a class="text-primary no-underline" href="https://www.sansimera.gr/reviews/1989">1989</a>'
+        url_year_to_delete = re.findall(
+                            '<a class="text-primary no-underline" [\w=":/.>\d]+</a>',
+                            text)
+        px_year_to_delete = re.findall('<div class="time text-primary">[0-9]+</div>',
+                                       text)
+        try:
+            text = text.replace(url_year_to_delete[0], '')
+        except:
+            print('Couldn\'t remove year url for: ', text)
+            pass
+        try:
+            text = text.replace(px_year_to_delete[0], '')
+        except:
+            print('Couldn\'t remove year url for: ', text)
+            pass
+        return text
+
     def event_parser(self, event, count):
         event = str(event)
         event = event.split('</dd>')
@@ -110,20 +130,12 @@ class Sansimera_data(object):
         for ev in event:
             if ev.count('<dt class="text-xs-center">π.Χ.</dt>') == 1:
                 self.bC = True
-            elif ev.count('<dt class="text-xs-center hidden-print ">μ.Χ.</dt>') == 1:
+                ev = ev.replace('π.Χ.', '')
+            else:
                 self.bC = False
                 ev = ev.replace('μ.Χ.', '')
             eventText_url_local = self.getImage(ev)
-            # Remove the link with the year avbove the image
-            # Eg:'<a class="text-primary no-underline" href="https://www.sansimera.gr/reviews/1989">1989</a>'
-            url_year_to_delete = re.findall(
-                                '<a class="text-primary no-underline" [\w=":/.>\d]+</a>',
-                                eventText_url_local)
-            try:
-                eventText_url_local = eventText_url_local.replace(url_year_to_delete[0], '')
-            except:
-                print('Couldn\'t remove year url for: ', eventText_url_local)
-                pass
+            eventText_url_local = self.remove_year(eventText_url_local)
             if ev.count('<small>(Γεν. ') or count == 2:
                 birth_death = '<br/><small><i>Θάνατος</i></small><br/>'
             elif count == 1:
