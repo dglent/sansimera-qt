@@ -12,7 +12,7 @@ from PyQt5.QtGui import QIcon, QCursor, QTextCursor
 
 from PyQt5.QtWidgets import(
     QAction, QMainWindow, QApplication, QSystemTrayIcon, QMenu, QTextBrowser,
-    QToolBar, QMessageBox
+    QToolBar, QMessageBox, QDialog, QDoubleSpinBox, QGridLayout
     )
 import re
 import platform
@@ -47,9 +47,12 @@ class Sansimera(QMainWindow):
         self.exitAction = QAction('&Έξοδος', self)
         self.refreshAction = QAction('&Ανανέωση', self)
         self.aboutAction = QAction('&Σχετικά', self)
+        self.notification_interval = QAction('Ει&δοποίηση εορταζόντων', self)
+        self.menu.addAction(self.notification_interval)
         self.menu.addAction(self.refreshAction)
         self.menu.addAction(self.aboutAction)
         self.menu.addAction(self.exitAction)
+        self.notification_interval.triggered.connect(self.interval_namedays)
         self.exitAction.triggered.connect(exit)
         self.refreshAction.triggered.connect(self.refresh)
         self.aboutAction.triggered.connect(self.about)
@@ -86,6 +89,19 @@ class Sansimera(QMainWindow):
         settings = QSettings()
         self.restoreState(settings.value("MainWindow/State", QByteArray()))
         self.refresh()
+
+    def interval_namedays(self):
+        dialog = QDialog()
+        interval_spinbox = QDoubleSpinBox()
+        interval_spinbox.setRange(0.5, 12.0)
+        interval_spinbox.setValue(1.0)
+        grid = QGridLayout()
+        grid.addWidget(interval_spinbox, 1, 1)
+        dialog.setLayout(grid)
+        if dialog.exec_():
+            print('dialogue')
+
+
 
     def nextItem(self):
         if len(self.lista) >= 1:

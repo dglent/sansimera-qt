@@ -77,7 +77,14 @@ class Sansimera_fetch(QObject):
         if len(eortazontes) >= 1:
             text = eortazontes[0]
             names = text.split(',')
-        return names
+        alt_names = names[:]
+        counter = 2
+        # Add a new line to avoid a very long string in the tooltip
+        for i in range(0, len(names)):
+            if counter <= len(names):
+                alt_names.insert(i + counter, '\n')
+                counter += 2
+        return alt_names
 
     def eortologio(self):
         req = urllib.request.Request('http://www.eortologio.gr/rss/si_el.xml')
