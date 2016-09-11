@@ -51,7 +51,7 @@ class Sansimera_data(object):
             self.year = '<b>' + self.year + bC + ': </b><br/>'
         iconUrl = 'None'
         try:
-            iconUrl = re.findall('src="(https://[a-zA-Z./_0-9-]+)', text)[0]
+            iconUrl = re.findall('src="(https://[a-zA-Z./_0-9-%]+)', text)[0]
             iconName = os.path.basename(iconUrl)
             req = requests.get(iconUrl, stream=True,
                                headers={'User-agent': 'Mozilla/5.0'})
