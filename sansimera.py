@@ -183,15 +183,17 @@ class Sansimera(QMainWindow):
         self.systray.setToolTip('Εορτάζουν:\n' + show_notifier_text)
 
     def nameintooltip(self, text):
-        self.eortazontes_names = text#.replace('<br/>', '\n')
+        self.eortazontes_names = text
+        for i in ['<br/>', '<div>']:
+            text = text.replace(i, '')
+        self.eortazontes_in_window = text
         if self.eortazontes_shown:
             return
-
         self.reminder_tray()
         self.eortazontes_shown = True
 
     def window(self):
-        self.lista.append('<div class=""></div>' + self.eortazontes_names)
+        self.lista.append('<div class=""></div>' + self.eortazontes_in_window)
         if self.status_online:
             self.browser.clear()
             self.browser.append(self.lista[0])
