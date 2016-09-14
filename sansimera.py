@@ -4,22 +4,18 @@
 # Author: Dimitrios Glentadakis dglent@free.fr
 # License: GPLv3
 
-from PyQt5.QtCore import (
-    QThread, QTimer, Qt, QSettings, QByteArray, pyqtSignal, QT_VERSION_STR,
-    PYQT_VERSION_STR
-    )
+from PyQt5.QtCore import (QThread, QTimer, Qt, QSettings, QByteArray, pyqtSignal,
+                          QT_VERSION_STR, PYQT_VERSION_STR)
 from PyQt5.QtGui import QIcon, QCursor, QTextCursor
-
-from PyQt5.QtWidgets import(
-    QAction, QMainWindow, QApplication, QSystemTrayIcon, QMenu, QTextBrowser,
-    QToolBar, QMessageBox, QDialog, QDoubleSpinBox, QGridLayout
-    )
+from PyQt5.QtWidgets import (QAction, QMainWindow, QApplication, QSystemTrayIcon,
+                            QMenu, QTextBrowser, QToolBar, QMessageBox)
 import re
 import platform
 import sys
 import qrc_resources
 import sansimera_data
 import sansimera_fetch
+import sansimera_reminder
 
 __version__ = "0.4.0"
 
@@ -27,10 +23,13 @@ __version__ = "0.4.0"
 class Sansimera(QMainWindow):
     def __init__(self, parent=None):
         super(Sansimera, self).__init__(parent)
+        self.settings = QSettings()
         self.timer = QTimer(self)
         self.timer_reminder = QTimer(self)
         self.timer_reminder.timeout.connect(self.reminder_tray)
-        self.timer_reminder.start(3600000)
+        interval = self.settings.value('Interval') or '1'
+        if interval != '0':
+            self.timer_reminder.start(int(interval) *  60 * 60 * 1000)
         self.tentatives = 0
         self.gui()
         self.lista = []
@@ -86,22 +85,23 @@ class Sansimera(QMainWindow):
         controls.addAction(self.previousAction)
         controls.addAction(self.nextAction)
         controls.addAction(self.refreshAction)
-        settings = QSettings()
-        self.restoreState(settings.value("MainWindow/State", QByteArray()))
+        self.restoreState(self.settings.value("MainWindow/State", QByteArray()))
         self.refresh()
 
     def interval_namedays(self):
-        dialog = QDialog()
-        interval_spinbox = QDoubleSpinBox()
-        interval_spinbox.setRange(0.5, 12.0)
-        interval_spinbox.setValue(1.0)
-        grid = QGridLayout()
-        grid.addWidget(interval_spinbox, 1, 1)
-        dialog.setLayout(grid)
-        if dialog.exec_():
-            print('dialogue')
+        dialog = sansimera_reminder.Reminder(self)
+        dialog.applied_signal['QString'].connect(self.reminder)
+        if dialog.exec_() == 1:
+            print('Apply namedays reminder interval...')
 
 
+    def reminder(self, time):
+        self.settings.setValue('Interval', time)
+        if time != '0':
+            self.timer_reminder.start(int(time) *  60 * 60 * 1000)
+            print('Reminder = ' + time + 'hour(s)')
+        else:
+            print('Reminder = None')
 
     def nextItem(self):
         if len(self.lista) >= 1:
@@ -206,8 +206,7 @@ class Sansimera(QMainWindow):
             self.tentatives += 1
 
     def closeEvent(self, event):
-        settings = QSettings()
-        settings.setValue("MainWindow/State", self.saveState())
+        self.settings.setValue("MainWindow/State", self.saveState())
 
     def about(self):
         self.menu.hide()
