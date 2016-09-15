@@ -12,12 +12,19 @@ from PyQt5.QtWidgets import (QAction, QMainWindow, QApplication, QSystemTrayIcon
 import re
 import platform
 import sys
-import qrc_resources
-import sansimera_data
-import sansimera_fetch
-import sansimera_reminder
 
-__version__ = "0.4.0"
+try:
+    import qrc_resources
+    import sansimera_data
+    import sansimera_fetch
+    import sansimera_reminder
+except:
+    from sansimera_qt import qrc_resources
+    from sansimera_qt import sansimera_data
+    from sansimera_qt import sansimera_fetch
+    from sansimera_qt import sansimera_reminder
+
+__version__ = "0.5.0"
 
 
 class Sansimera(QMainWindow):
@@ -69,6 +76,7 @@ class Sansimera(QMainWindow):
         ricon = QIcon(':/refresh')
         iicon = QIcon(':/info')
         qicon = QIcon(':/exit')
+        inicon = QIcon(':/notifications')
         self.nextAction = QAction('Επόμενο', self)
         self.nextAction.setIcon(nicon)
         self.previousAction = QAction('Προηγούμενο', self)
@@ -79,6 +87,7 @@ class Sansimera(QMainWindow):
         self.refreshAction.setIcon(ricon)
         self.exitAction.setIcon(qicon)
         self.aboutAction.setIcon(iicon)
+        self.notification_interval.setIcon(inicon)
         controls = QToolBar()
         self.addToolBar(Qt.BottomToolBarArea, controls)
         controls.setObjectName('Controls')
@@ -99,7 +108,7 @@ class Sansimera(QMainWindow):
         self.settings.setValue('Interval', time)
         if time != '0':
             self.timer_reminder.start(int(time) *  60 * 60 * 1000)
-            print('Reminder = ' + time + 'hour(s)')
+            print('Reminder = ' + time + ' hour(s)')
         else:
             print('Reminder = None')
 
@@ -254,11 +263,17 @@ class WorkThread(QThread):
         print('thread', online)
         return
 
-app = QApplication(sys.argv)
-app.setQuitOnLastWindowClosed(False)
-app.setOrganizationName('sansimera-qt')
-app.setOrganizationDomain('sansimera-qt')
-app.setApplicationName('sansimera-qt')
-prog = Sansimera()
-app.exec_()
+
+def main():
+    app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
+    app.setOrganizationName('sansimera-qt')
+    app.setOrganizationDomain('sansimera-qt')
+    app.setApplicationName('sansimera-qt')
+    prog = Sansimera()
+    app.exec_()
+
+
+if __name__ == '__main__':
+    main()
 

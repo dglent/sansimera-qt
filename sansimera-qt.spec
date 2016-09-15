@@ -1,8 +1,10 @@
+%define aname sansimera_qt
+
 Name:           sansimera-qt
-Version:        0.4.0
+Version:        0.5.0
 Release:        %mkrel 1
 Group:          Network/News
-Summary:        Events from the site www.sansimera.gr
+Summary:        Namedays and events of the day back in the history
 License:        GPLv3
 URL:            https://github.com/dglent/sansimera-qt
 Source0:        %{name}-%{version}.tar.gz
@@ -23,55 +25,27 @@ Requires:       wget
 
 %description
 A Qt system tray application which shows the events back in the history
-from the website www.sansimera.gr
+from the website www.sansimera.gr and the namedays from www.eortologio.gr
 
 %prep
 %setup -q
 
 %build
-pyrcc5 -o qrc_resources.py resources.qrc
+%__python3 setup.py build
 
 %install
-mkdir -p %{buildroot}%{_bindir}
-cat > %{buildroot}%{_bindir}/sansimera-qt << EOF
-#!/usr/bin/bash
+%__python3 ./setup.py install --skip-build --root=%{buildroot}
+%__mkdir -p %{buildroot}%{_iconsdir}/hicolor/{16x16,32x32}/apps
+convert -scale 16x16 sansimera_qt/images/sansimera-qt.png %{buildroot}%{_iconsdir}/hicolor/16x16/apps/sansimera-qt.png
+convert -scale 32x32 sansimera_qt/images/sansimera-qt.png %{buildroot}%{_iconsdir}/hicolor/32x32/apps/sansimera-qt.png
 
-cd %{_datadir}/sansimera-qt
-python3 sansimera.py
-EOF
-chmod +x %{buildroot}%{_bindir}/sansimera-qt
-
-#-------------------------------------------
-mkdir -p %{buildroot}%{_datadir}/applications
-cat > %{buildroot}%{_datadir}/applications/%{name}.desktop << EOF
-[Desktop Entry]
-Name=Sansimera-qt
-Comment=Σαν σήμερα
-Exec=sansimera-qt
-Icon=sansimera
-Path=/usr/bin/sansimera
-Type=Application
-StartupNotify=true
-Categories=Network;Qt;
-EOF
-#-------------------------------------------
-for file in `ls images`; do
-    %__install -D images/$file %{buildroot}%{_datadir}/%{name}/images/$file
-done
-for file in *.py; do
-    %__install -D $file %{buildroot}%{_datadir}/%{name}/$file
-done
-#--------------------------------------------
-install -D -m644 images/sansimera.png %{buildroot}%{_iconsdir}/sansimera.png
-mkdir -p %{buildroot}%{_iconsdir}/hicolor/{16x16,32x32}/apps
-convert -scale 16x16 images/sansimera.png %{buildroot}%{_iconsdir}/hicolor/16x16/apps/sansimera.png
-convert -scale 32x32 images/sansimera.png %{buildroot}%{_iconsdir}/hicolor/32x32/apps/sansimera.png
 
 %files
-%dir %{_datadir}/%{name}
-%dir %{_datadir}/%{name}/images
+%doc README.md
+%{_datadir}/%{aname}/images/
 %{_bindir}/%{name}
+%{_iconsdir}/%{name}.png
+%{python3_sitelib}/%{aname}-%{version}-py%py3ver.egg-info
+%{python3_sitelib}/%{aname}/
 %{_datadir}/applications/%{name}.desktop
-%{_datadir}/%{name}/images/*
-%{_iconsdir}/*
-%{_datadir}/%{name}/*
+%{_iconsdir}/hicolor/*/apps/sansimera-qt.png

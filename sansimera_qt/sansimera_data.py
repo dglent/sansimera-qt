@@ -1,13 +1,17 @@
 import re
 import requests
 import os
-import sansimera_fetch
 from bs4 import BeautifulSoup
 
 try:
     import Image
 except ImportError:
     from PIL import Image
+
+try:
+    import sansimera_fetch
+except:
+    from sansimera_qt import sansimera_fetch
 
 
 class Sansimera_data(object):

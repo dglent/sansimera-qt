@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Sansimera-qt
+GenericName=The namedays and events of the day back in the history
+GenericName[el]=Εορτολόγιο και τα ιστορικά γεγονότα της ημέρας σαν σήμερα
+Comment=A Qt system tray application for the namedays and the events of the day back in the history
+Comment[el]=Μια Qt εφαρμογή πλαισίου συστήματος για τα ιστορικά γεγονότα σαν σήμερα και το εορτολόγιο
+Exec=sansimera-qt
+Icon=sansimera-qt
+Terminal=false
+StartupNotify=false
+Categories=Qt;LXQt;Network;
+X-DBUS-ServiceName=sansimera-qt
