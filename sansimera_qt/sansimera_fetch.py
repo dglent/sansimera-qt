@@ -78,12 +78,12 @@ class Sansimera_fetch(QObject):
             text = eortazontes[0]
             names = text.split(',')
         alt_names = names[:]
-        counter = 2
+        counter = 4
         # Add a new line to avoid a very long string in the tooltip
         for i in range(0, len(names)):
             if counter <= len(names):
-                alt_names.insert(i + counter, '\n')
-                counter += 2
+                alt_names.insert(i + counter + 1, '\n')
+                counter += 4
         return alt_names
 
     def eortologio(self):
@@ -98,7 +98,6 @@ class Sansimera_fetch(QObject):
         if len(eortazontes) >= 1:
             text = eortazontes[0]
             list_names = text.split(',')
-            list_names += sinaxari
             # Avoid to create a long line in tooltip
             for i in range(4, len(list_names), 4):
                 try:
@@ -111,6 +110,7 @@ class Sansimera_fetch(QObject):
                 if len(i) > 50:
                     ind = list_names.index(i)
                     list_names[ind] = i + '<br/>'
+            list_names += sinaxari
             text = (''.join(i for i in list_names))
             text = text.replace('www.eortologio.gr', '<a href="http://www.eortologio.gr/sample/eortologio_utf.php">www.eortologio.gr</a>')
             text = text.replace('www.synaxari.gr', '<a href="http://www.synaxari.gr/sample/eortologio_utf.php">www.synaxari.gr</a>')
