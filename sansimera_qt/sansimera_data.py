@@ -58,7 +58,8 @@ class Sansimera_data(object):
             iconUrl = re.findall('src="(https://[a-zA-Z./_0-9-%]+)', text)[0]
             iconName = os.path.basename(iconUrl)
             req = requests.get(iconUrl, stream=True,
-                               headers={'User-agent': 'Mozilla/5.0'})
+                               headers={'User-agent': 'Mozilla/5.0'},
+                               timeout=10)
             if req.status_code == 200:
                 with open(iconName, 'wb') as iconfile:
                     iconfile.write(req.content)
