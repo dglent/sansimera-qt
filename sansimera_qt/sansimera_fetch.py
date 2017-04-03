@@ -79,8 +79,8 @@ class Sansimera_fetch(QObject):
             names = text.split(',')
         alt_names = names[:]
         for i in range(0, len(names)):
-            if len(alt_names[i]) >= 40:
-                alt_names[i] += '\n'
+            if len(alt_names[i]) >= 20:
+                alt_names[i] = '\n' + alt_names[i]
         return alt_names
 
     def eortologio(self):
@@ -120,3 +120,4 @@ class Sansimera_fetch(QObject):
 if __name__ == "__main__":
     a1 = Sansimera_fetch()
     lista = a1.html()
+    eortologio = a1.eortologio()
