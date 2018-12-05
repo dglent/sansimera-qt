@@ -24,7 +24,7 @@ except:
     from sansimera_qt import sansimera_fetch
     from sansimera_qt import sansimera_reminder
 
-__version__ = "0.5.0"
+__version__ = "0.5.2"
 
 
 class Sansimera(QMainWindow):
@@ -36,7 +36,7 @@ class Sansimera(QMainWindow):
         self.timer_reminder.timeout.connect(self.reminder_tray)
         interval = self.settings.value('Interval') or '1'
         if interval != '0':
-            self.timer_reminder.start(int(interval) *  60 * 60 * 1000)
+            self.timer_reminder.start(int(interval) * 60 * 60 * 1000)
         self.tentatives = 0
         self.gui()
         self.lista = []
@@ -58,6 +58,7 @@ class Sansimera(QMainWindow):
         self.menu.addAction(self.refreshAction)
         self.menu.addAction(self.aboutAction)
         self.menu.addAction(self.exitAction)
+        self.systray.setContextMenu(self.menu)
         self.notification_interval.triggered.connect(self.interval_namedays)
         self.exitAction.triggered.connect(exit)
         self.refreshAction.triggered.connect(self.refresh)
@@ -103,11 +104,10 @@ class Sansimera(QMainWindow):
         if dialog.exec_() == 1:
             print('Apply namedays reminder interval...')
 
-
     def reminder(self, time):
         self.settings.setValue('Interval', time)
         if time != '0':
-            self.timer_reminder.start(int(time) *  60 * 60 * 1000)
+            self.timer_reminder.start(int(time) * 60 * 60 * 1000)
             print('Reminder = ' + time + ' hour(s)')
         else:
             print('Reminder = None')
@@ -273,7 +273,5 @@ def main():
     prog = Sansimera()
     app.exec_()
 
-
 if __name__ == '__main__':
     main()
-

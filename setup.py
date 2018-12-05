@@ -11,7 +11,7 @@ class BuildQm(build):
 
 setup(
     name='sansimera_qt',
-    version='0.5.0',
+    version='0.5.2',
     description='A system tray application for the namedays and the events of the day back in the history',
     author='Dimitrios Glentadakis',
     author_email='dglent@free.fr',
