@@ -67,6 +67,26 @@ class Sansimera_fetch(QObject):
         except:
             self.online = False
 
+    def orthodoxos_synarxistis(self):
+        req = urllib.request.Request('http://www.saint.gr/index.aspx')
+        response = urllib.request.urlopen(req)
+        page = response.read()
+        html = page.decode()
+        eortazontes = re.findall(
+            '<div id="mEortologio" style="float:left;">[;/,()&(:#\\r\\n .<\w=">-]+</td></tr></table></div>',
+            html
+        )[0]
+        image_fname = re.findall('src="http://www.saint.gr/addons/photos/([0-9a-zA-Z.]+)"', html)[0]
+        image_url = re.findall('src="(http://www.saint.gr/addons/photos/[0-9a-zA-Z.]+)"', html)[0]
+        image_abs_path = re.findall('src="http://www.saint.gr/addons/photos/[0-9a-zA-Z.]+"', html)[0]
+        filename = self.tmppathname + '/' + image_fname
+        comm = ('wget --timeout=5 {0} -O {1}'.format(image_url, filename))
+        os.system(comm)
+        eortazontes = eortazontes.replace(image_abs_path, 'src="{0}"'.format(filename))
+        for tag in ['<h1 class="pagetitle">', '</h1>']:
+            eortazontes = eortazontes.replace(tag, '')
+        return eortazontes
+
     def sinaxaristis_full(self):
         names = []
         req_full = urllib.request.Request('http://www.eortologio.gr/rss/si_el_full.xml')
@@ -121,3 +141,4 @@ if __name__ == "__main__":
     a1 = Sansimera_fetch()
     lista = a1.html()
     eortologio = a1.eortologio()
+    orthodox = a1.orthodoxos_synarxistis()

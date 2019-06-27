@@ -6,7 +6,7 @@
 
 from PyQt5.QtCore import (QThread, QTimer, Qt, QSettings, QByteArray, pyqtSignal,
                           QT_VERSION_STR, PYQT_VERSION_STR)
-from PyQt5.QtGui import QIcon, QCursor, QTextCursor
+from PyQt5.QtGui import QIcon, QCursor, QTextCursor, QTextDocument
 from PyQt5.QtWidgets import (QAction, QMainWindow, QApplication, QSystemTrayIcon,
                             QMenu, QTextBrowser, QToolBar, QMessageBox)
 import re
@@ -171,7 +171,11 @@ class Sansimera(QMainWindow):
         self.workThread.finished.connect(self.window)
         self.workThread.event['QString'].connect(self.addlist)
         self.workThread.names['QString'].connect(self.nameintooltip)
+        self.workThread.orthodox_signal.connect(self.orthodox_synarxistis)
         self.workThread.start()
+
+    def orthodox_synarxistis(self, html):
+        self.lista.append(html)
 
     def addlist(self, text):
         self.lista.append(text)
@@ -188,8 +192,10 @@ class Sansimera(QMainWindow):
             show_notifier_text = show_notifier_text.replace(i, '')
         show_notifier_text = show_notifier_text.replace('\n\n', '\n')
         show_notifier_text = show_notifier_text.replace('www.eortologio.gr)', 'www.eortologio.gr)\n')
-        self.systray.showMessage('Εορτάζουν:\n', show_notifier_text)
-        self.systray.setToolTip('Εορτάζουν:\n' + show_notifier_text)
+        # self.systray.showMessage('Εορτάζουν:\n', show_notifier_text)
+        # self.systray.setToolTip('Εορτάζουν:\n' + show_notifier_text)
+        self.systray.showMessage('', show_notifier_text)
+        self.systray.setToolTip(show_notifier_text)
 
     def nameintooltip(self, text):
         self.eortazontes_names = text
@@ -206,6 +212,7 @@ class Sansimera(QMainWindow):
         if self.status_online:
             self.browser.clear()
             self.browser.append(self.lista[0])
+            self.browser.moveCursor(QTextCursor.Start)
             self.lista_pos = 0
             return
         else:
@@ -229,7 +236,8 @@ class Sansimera(QMainWindow):
                         www.sansimera.gr</a><br/>
                         Πηγή εορτολογίου: <a href="http://www.eortologio.gr">
                         www.eortologio.gr</a>, <a href="http://www.synaxari.gr">
-                        www.synaxari.gr</a>
+                        www.synaxari.gr</a>, <a href="http://www.saint.gr/index.aspx">
+                        www.saint.gr</a>
                         <p>Άδεια χρήσης: GPLv3 <br/>Python {1} - Qt {2} - PyQt {3} σε {4}""".format(
                         __version__, platform.python_version(),
                         QT_VERSION_STR, PYQT_VERSION_STR, platform.system()))
@@ -239,6 +247,7 @@ class WorkThread(QThread):
     online_signal = pyqtSignal([bool])
     event = pyqtSignal(['QString'])
     names = pyqtSignal(['QString'])
+    orthodox_signal = pyqtSignal(['QString'])
 
     def __init__(self):
         QThread.__init__(self)
@@ -249,11 +258,18 @@ class WorkThread(QThread):
     def run(self):
         fetch = sansimera_fetch.Sansimera_fetch()
         fetch.html()
-        try:
-            eortazontes = fetch.eortologio()
-            self.names['QString'].emit(eortazontes)
-        except:
-            print('Eortologio unavailable')
+        # try:
+        #     eortazontes = fetch.eortologio()
+        #     self.names['QString'].emit(eortazontes)
+        # except:
+        #     print('Eortologio unavailable')
+        orthodox_names = fetch.orthodoxos_synarxistis()
+        self.orthodox_signal.emit(orthodox_names)
+        doc = QTextDocument()
+        doc.setHtml(orthodox_names)
+        text = doc.toPlainText()
+        self.names.emit(text)
+
         online = fetch.online
         data = sansimera_data.Sansimera_data()
         lista = data.getAll()
