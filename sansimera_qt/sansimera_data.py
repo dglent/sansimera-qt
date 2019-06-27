@@ -112,10 +112,13 @@ class Sansimera_data(object):
         # Remove the link with the year avbove the image
         # Eg:'<a class="text-primary no-underline" href="https://www.sansimera.gr/reviews/1989">1989</a>'
         url_year_to_delete = re.findall(
-                            '<a class="text-primary no-underline" [\w=":/.>\d]+</a>',
-                            text)
-        px_year_to_delete = re.findall('<div class="time text-primary">[0-9]+</div>',
-                                       text)
+            '<a class="text-primary no-underline" [\w=":/.>\d]+</a>',
+            text
+        )
+        px_year_to_delete = re.findall(
+            '<div class="time text-primary">[0-9]+</div>',
+            text
+        )
         try:
             text = text.replace(url_year_to_delete[0], '')
         except:
@@ -146,12 +149,24 @@ class Sansimera_data(object):
             elif count == 1:
                 birth_death = '<br/><small><i>Γέννηση</small></i><br/>'
             if eventText_url_local.count('href="https://') >= 1:
-                self.allList.append(str('<br/>' + self.sanTitle + self.year +
-                                        birth_death + eventText_url_local))
+                self.allList.append(
+                    str(
+                        '<br/>'
+                        + self.sanTitle
+                        + self.year
+                        + birth_death
+                        + eventText_url_local
+                    )
+                )
 
     def days(self):
-        worldlist = [str('<br/><b>' + '&nbsp;' * 20 +
-                         'Παγκόσμιες Ημέρες</b><br/>')]
+        worldlist = [
+            str(
+                '<br/><b>'
+                + '&nbsp;' * 20
+                + 'Παγκόσμιες Ημέρες</b><br/>'
+            )
+        ]
         lista = self.soup.find_all('a')
         for tag in lista:
             url = tag.get('href')
@@ -161,8 +176,12 @@ class Sansimera_data(object):
                         day = 'w'
                     elif 'namedays' in url:
                         day = 'n'
-                        title = (self.sanTitle + '<br/>' + '&nbsp;'*20 +
-                                 '<b>Εορτολόγιο</b><br/>')
+                        title = (
+                            self.sanTitle
+                            + '<br/>'
+                            + '&nbsp;' * 20
+                            + '<b>Εορτολόγιο</b><br/>'
+                        )
                     tag = str(tag)
                     if 'Εορτολόγιο' in tag or 'Παγκόσμιες Ημέρες' in tag:
                         continue
@@ -171,25 +190,28 @@ class Sansimera_data(object):
                     if day == 'w':
                         worldlist.append('<br/>' + tag + '.')
                     elif day == 'n':
-                        tag = '<br>'+title+'<br/>' + tag
+                        tag = '<br>' + title + '<br/>' + tag
                         self.allList.append(tag)
         if len(worldlist) > 1:
             worldays = ' '.join(worldlist)
-            worldays = '<b/>'+self.sanTitle + '<br/>' + worldays
+            worldays = '<b/>' + self.sanTitle + '<br/>' + worldays
             self.allList.append(worldays)
 
     def getAll(self):
         self.allList = []
-        print('getall', self.online)
         if self.online:
             self.events()
             self.said_know()
             self.days()
         if len(self.allList) == 0:
-            self.allList.append('<br/>' + self.sanTitle +
-                                '<br/><br/>Δεν βρέθηκαν γεγονότα,'
-                                'ελέγξτε τη σύνδεσή σας.')
+            self.allList.append(
+                '<br/>'
+                + self.sanTitle
+                + '<br/><br/>Δεν βρέθηκαν γεγονότα,'
+                + 'ελέγξτε τη σύνδεσή σας.'
+            )
         return self.allList
+
 
 if __name__ == "__main__":
     a1 = Sansimera_data()

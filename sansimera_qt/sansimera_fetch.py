@@ -16,13 +16,18 @@ class Sansimera_fetch(QObject):
         self.online = False
         # FIXME Until i find how to creat a named folder with tempfile
         pathname = tempfile.mkdtemp()
-        comm = ('mv ' + pathname + ' ' + os.path.dirname(pathname) +
-                '/sansimera-qt')
+        comm = (
+            'mv '
+            + pathname
+            + ' '
+            + os.path.dirname(pathname)
+            + '/sansimera-qt'
+        )
         os.system(comm)
         self.tmppathname = os.path.dirname(pathname) + '/sansimera-qt'
 
     def url(self):
-        imerominia = str(self.pay()+self.ponth())
+        imerominia = str(self.pay() + self.ponth())
         self.url = 'https://www.sansimera.gr/almanac/' + imerominia
         return self.url
 
@@ -44,8 +49,14 @@ class Sansimera_fetch(QObject):
                 '07': 'Ιουλίου', '08': 'Αυγούστου', '09': 'Σεπτεμβρίου',
                 '10': 'Οκτωβρίου', '11': 'Νοεμβρίου', '12': 'Δεκεμβρίου'}
         month = self.ponth()
-        self.im = str(' ' * 10 + '...Σαν σήμερα ' + self.pay() + ' ' +
-                      dico[month] + '\n')
+        self.im = str(
+            ' ' * 10
+            + '...Σαν σήμερα '
+            + self.pay()
+            + ' '
+            + dico[month]
+            + '\n'
+        )
         return self.im
 
     def html(self):
@@ -55,8 +66,12 @@ class Sansimera_fetch(QObject):
         comm0 = 'touch ' + filename
         os.system(comm0)
         # FIXME to use urlib.request instead
-        comm = ('wget --timeout=5 --user-agent="Sansimera PyQt" ' + link +
-                ' -O ' + filename)
+        comm = (
+            'wget --timeout=5 --user-agent="Sansimera PyQt" '
+            + link
+            + ' -O '
+            + filename
+        )
         self.online = True
         os.system(comm)
         try:
@@ -119,7 +134,7 @@ class Sansimera_fetch(QObject):
             for i in range(4, len(list_names), 4):
                 try:
                     list_names.insert(i, '<div><br/>')
-                    list_names[i+1] = list_names[i+1]
+                    list_names[i + 1] = list_names[i + 1]
                 except IndexError:
                     break
             # Make new line if the string is too long
@@ -129,13 +144,20 @@ class Sansimera_fetch(QObject):
                     list_names[ind] = i + '<br/>'
             list_names += sinaxari
             text = (''.join(i for i in list_names))
-            text = text.replace('www.eortologio.gr', '<a href="http://www.eortologio.gr/sample/eortologio_utf.php">www.eortologio.gr</a>')
-            text = text.replace('www.synaxari.gr', '<a href="http://www.synaxari.gr/sample/eortologio_utf.php">www.synaxari.gr</a>')
+            text = text.replace(
+                'www.eortologio.gr',
+                '<a href="http://www.eortologio.gr/sample/eortologio_utf.php">www.eortologio.gr</a>'
+            )
+            text = text.replace(
+                'www.synaxari.gr',
+                '<a href="http://www.synaxari.gr/sample/eortologio_utf.php">www.synaxari.gr</a>'
+            )
         return text
 
     def fetchDate(self):
         date = str(datetime.date.today())
         return date
+
 
 if __name__ == "__main__":
     a1 = Sansimera_fetch()
