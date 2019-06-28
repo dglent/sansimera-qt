@@ -208,7 +208,6 @@ class Sansimera(QMainWindow):
         self.eortazontes_shown = True
 
     def window(self):
-        self.lista.append('<div class=""></div>' + self.eortazontes_in_window)
         if self.status_online:
             self.browser.clear()
             self.browser.append(self.lista[0])

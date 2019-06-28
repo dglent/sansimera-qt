@@ -98,6 +98,7 @@ class Sansimera_fetch(QObject):
         comm = ('wget --timeout=5 {0} -O {1}'.format(image_url, filename))
         os.system(comm)
         eortazontes = eortazontes.replace(image_abs_path, 'src="{0}"'.format(filename))
+        # Too big title
         for tag in ['<h1 class="pagetitle">', '</h1>']:
             eortazontes = eortazontes.replace(tag, '')
         return eortazontes
