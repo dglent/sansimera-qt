@@ -88,7 +88,7 @@ class Sansimera_fetch(QObject):
         page = response.read()
         html = page.decode()
         eortazontes = re.findall(
-            '<div id="mEortologio" style="float:left;">[;/,()&(:#\\r\\n .<\w=">-]+</td></tr></table></div>',
+            '''<div id="mEortologio" style="float:left;">[';/,()&(:#\\r\\n .<\w=">-]+</span></td></tr></table></div>''',
             html
         )[0]
         image_fname = re.findall('src="http://www.saint.gr/addons/photos/([0-9a-zA-Z.]+)"', html)[0]
