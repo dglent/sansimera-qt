@@ -91,12 +91,16 @@ class Sansimera_data(object):
                                 didYouKnow = (str(listd[count]))
                                 # Convert url to local path
                                 didYouKnow_url_local = self.getImage(didYouKnow)
+                                # Change the tag to display the source image
+                                didYouKnow_url_local = didYouKnow_url_local.replace('data-src', 'src')
                                 self.allList.append(str(didYouKnow_url_local))
                     # Find the He Said ...
                     if tag[0] == 'widget' and tag[1] == 'widget-quotes':
                         said = str(listd[count])
                         # Convert url to local path
                         who_url_local = self.getImage(said)
+                        # Change the tag to display the source image
+                        who_url_local = who_url_local.replace('data-src', 'src')
                         self.allList.append(who_url_local)
             count += 1
 
@@ -109,7 +113,7 @@ class Sansimera_data(object):
             count += 1
 
     def remove_year(self, text):
-        # Remove the link with the year avbove the image
+        # Remove the link with the year above the image
         # Eg:'<a class="text-primary no-underline" href="https://www.sansimera.gr/reviews/1989">1989</a>'
         url_year_to_delete = re.findall(
             '<a class="text-primary no-underline" [\w=":/.>\d]+</a>',
