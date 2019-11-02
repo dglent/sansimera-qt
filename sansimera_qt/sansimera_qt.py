@@ -4,11 +4,15 @@
 # Author: Dimitrios Glentadakis dglent@free.fr
 # License: GPLv3
 
-from PyQt5.QtCore import (QThread, QTimer, Qt, QSettings, QByteArray, pyqtSignal,
-                          QT_VERSION_STR, PYQT_VERSION_STR)
+from PyQt5.QtCore import (
+    QThread, QTimer, Qt, QSettings, QByteArray, pyqtSignal,
+    QT_VERSION_STR, PYQT_VERSION_STR
+)
 from PyQt5.QtGui import QIcon, QCursor, QTextCursor, QTextDocument
-from PyQt5.QtWidgets import (QAction, QMainWindow, QApplication, QSystemTrayIcon,
-                            QMenu, QTextBrowser, QToolBar, QMessageBox)
+from PyQt5.QtWidgets import (
+    QAction, QMainWindow, QApplication, QSystemTrayIcon,
+    QMenu, QTextBrowser, QToolBar, QMessageBox
+)
 import re
 import platform
 import sys
@@ -24,7 +28,7 @@ except:
     from sansimera_qt import sansimera_fetch
     from sansimera_qt import sansimera_reminder
 
-__version__ = "0.5.2"
+__version__ = "0.6.0"
 
 
 class Sansimera(QMainWindow):
@@ -101,21 +105,17 @@ class Sansimera(QMainWindow):
     def interval_namedays(self):
         dialog = sansimera_reminder.Reminder(self)
         dialog.applied_signal['QString'].connect(self.reminder)
-        if dialog.exec_() == 1:
-            print('Apply namedays reminder interval...')
+        dialog.exec_()
 
     def reminder(self, time):
         self.settings.setValue('Interval', time)
         if time != '0':
             self.timer_reminder.start(int(time) * 60 * 60 * 1000)
-            print('Reminder = ' + time + ' hour(s)')
-        else:
-            print('Reminder = None')
 
     def nextItem(self):
         if len(self.lista) >= 1:
             self.browser.clear()
-            if self.lista_pos != len(self.lista)-1:
+            if self.lista_pos != len(self.lista) - 1:
                 self.lista_pos += 1
             else:
                 self.lista_pos = 0
@@ -128,7 +128,7 @@ class Sansimera(QMainWindow):
         if len(self.lista) >= 1:
             self.browser.clear()
             if self.lista_pos == 0:
-                self.lista_pos = len(self.lista)-1
+                self.lista_pos = len(self.lista) - 1
             else:
                 self.lista_pos -= 1
             self.browser.append(self.lista[self.lista_pos])
@@ -192,8 +192,6 @@ class Sansimera(QMainWindow):
             show_notifier_text = show_notifier_text.replace(i, '')
         show_notifier_text = show_notifier_text.replace('\n\n', '\n')
         show_notifier_text = show_notifier_text.replace('www.eortologio.gr)', 'www.eortologio.gr)\n')
-        # self.systray.showMessage('Εορτάζουν:\n', show_notifier_text)
-        # self.systray.setToolTip('Εορτάζουν:\n' + show_notifier_text)
         self.systray.showMessage('', show_notifier_text)
         self.systray.setToolTip(show_notifier_text)
 
@@ -225,21 +223,23 @@ class Sansimera(QMainWindow):
 
     def about(self):
         self.menu.hide()
-        QMessageBox.about(self, "Εφαρμογή «Σαν σήμερα...»",
-                        """<b>sansimera-qt</b> v{0}
-                        <p>Δημήτριος Γλενταδάκης <a href="mailto:dglent@free.fr">dglent@free.fr</a>
-                        <br/>Ιστοσελίδα: <a href="https://github.com/dglent/sansimera-qt">
-                        github sansimera-qt</a>
-                        <p>Εφαρμογή πλαισίου συστήματος για την προβολή
-                        <br/>των γεγονότων από την ιστοσελίδα <a href="http://www.sansimera.gr">
-                        www.sansimera.gr</a><br/>
-                        Πηγή εορτολογίου: <a href="http://www.eortologio.gr">
-                        www.eortologio.gr</a>, <a href="http://www.synaxari.gr">
-                        www.synaxari.gr</a>, <a href="http://www.saint.gr/index.aspx">
-                        www.saint.gr</a>
-                        <p>Άδεια χρήσης: GPLv3 <br/>Python {1} - Qt {2} - PyQt {3} σε {4}""".format(
-                        __version__, platform.python_version(),
-                        QT_VERSION_STR, PYQT_VERSION_STR, platform.system()))
+        QMessageBox.about(
+            self,
+            "Εφαρμογή «Σαν σήμερα...»",
+            """<b>sansimera-qt</b> v{0}
+            <p>Δημήτριος Γλενταδάκης <a href="mailto:dglent@free.fr">dglent@free.fr</a>
+            <br/>Ιστοσελίδα: <a href="https://github.com/dglent/sansimera-qt">
+            github sansimera-qt</a>
+            <p>Εφαρμογή πλαισίου συστήματος για την προβολή
+            <br/>των γεγονότων από την ιστοσελίδα <a href="http://www.sansimera.gr">
+            www.sansimera.gr</a><br/>
+            Πηγή εορτολογίου: <a href="http://www.saint.gr/index.aspx">
+            www.saint.gr</a>
+            <p>Άδεια χρήσης: GPLv3 <br/>Python {1} - Qt {2} - PyQt {3} σε {4}""".format(
+                __version__, platform.python_version(),
+                QT_VERSION_STR, PYQT_VERSION_STR, platform.system()
+            )
+        )
 
 
 class WorkThread(QThread):
@@ -257,11 +257,6 @@ class WorkThread(QThread):
     def run(self):
         fetch = sansimera_fetch.Sansimera_fetch()
         fetch.html()
-        # try:
-        #     eortazontes = fetch.eortologio()
-        #     self.names['QString'].emit(eortazontes)
-        # except:
-        #     print('Eortologio unavailable')
         orthodox_names = fetch.orthodoxos_synarxistis()
         self.orthodox_signal.emit(orthodox_names)
         doc = QTextDocument()
@@ -275,7 +270,6 @@ class WorkThread(QThread):
         for i in lista:
             self.event['QString'].emit(i)
         self.online_signal[bool].emit(online)
-        print('thread', online)
         return
 
 

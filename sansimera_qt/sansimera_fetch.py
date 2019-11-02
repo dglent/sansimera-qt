@@ -27,21 +27,21 @@ class Sansimera_fetch(QObject):
         self.tmppathname = os.path.dirname(pathname) + '/sansimera-qt'
 
     def url(self):
-        imerominia = str(self.pay() + self.ponth())
-        self.url = 'https://www.sansimera.gr/almanac/' + imerominia
-        return self.url
+        date = str(self.pay() + self.ponth())
+        url = 'https://www.sansimera.gr/almanac/' + date
+        return url
 
     def pay(self):
         imera = str(datetime.date.today()).split('-')
         imera = imera[1:]
-        self.pay = imera[1]
-        return self.pay
+        day = imera[1]
+        return day
 
     def ponth(self):
         imera = str(datetime.date.today()).split('-')
         imera = imera[1:]
-        self.ponth = imera[0]
-        return self.ponth
+        month = imera[0]
+        return month
 
     def monthname(self):
         dico = {'01': 'Ιανουαρίου', '02': 'Φεβρουαρίου', '03': 'Μαρτίου',
@@ -49,7 +49,7 @@ class Sansimera_fetch(QObject):
                 '07': 'Ιουλίου', '08': 'Αυγούστου', '09': 'Σεπτεμβρίου',
                 '10': 'Οκτωβρίου', '11': 'Νοεμβρίου', '12': 'Δεκεμβρίου'}
         month = self.ponth()
-        self.im = str(
+        im = str(
             ' ' * 10
             + '...Σαν σήμερα '
             + self.pay()
@@ -57,7 +57,7 @@ class Sansimera_fetch(QObject):
             + dico[month]
             + '\n'
         )
-        return self.im
+        return im
 
     def html(self):
         link = self.url()
@@ -102,58 +102,6 @@ class Sansimera_fetch(QObject):
         for tag in ['<h1 class="pagetitle">', '</h1>']:
             eortazontes = eortazontes.replace(tag, '')
         return eortazontes
-
-    def sinaxaristis_full(self):
-        names = []
-        req_full = urllib.request.Request('http://www.eortologio.gr/rss/si_el_full.xml')
-        reponse_full = urllib.request.urlopen(req_full)
-        page_full = reponse_full.read()
-        html_full = page_full.decode('cp1253')
-        eortazontes = re.findall('<title>(σήμερα[\D0-9]+)</title>', html_full)
-        if len(eortazontes) >= 1:
-            text = eortazontes[0]
-            names = text.split(',')
-        alt_names = names[:]
-        for i in range(0, len(names)):
-            if len(alt_names[i]) >= 20:
-                alt_names[i] = '\n' + alt_names[i]
-        return alt_names
-
-    def eortologio(self):
-        req = urllib.request.Request('http://www.eortologio.gr/rss/si_el.xml')
-        response = urllib.request.urlopen(req)
-        page = response.read()
-        html = page.decode('cp1253')
-        text = 'Δεν υπάρχει κάποια σημαντική εορτή'
-        eortazontes = re.findall('<title>(σήμερα[\D0-9]+)</title>', html)
-        sinaxari = self.sinaxaristis_full()
-        sinaxari.insert(0, '<p><br/>')
-        if len(eortazontes) >= 1:
-            text = eortazontes[0]
-            list_names = text.split(',')
-            # Avoid to create a long line in tooltip
-            for i in range(4, len(list_names), 4):
-                try:
-                    list_names.insert(i, '<div><br/>')
-                    list_names[i + 1] = list_names[i + 1]
-                except IndexError:
-                    break
-            # Make new line if the string is too long
-            for i in list_names:
-                if len(i) > 50:
-                    ind = list_names.index(i)
-                    list_names[ind] = i + '<br/>'
-            list_names += sinaxari
-            text = (''.join(i for i in list_names))
-            text = text.replace(
-                'www.eortologio.gr',
-                '<a href="http://www.eortologio.gr/sample/eortologio_utf.php">www.eortologio.gr</a>'
-            )
-            text = text.replace(
-                'www.synaxari.gr',
-                '<a href="http://www.synaxari.gr/sample/eortologio_utf.php">www.synaxari.gr</a>'
-            )
-        return text
 
     def fetchDate(self):
         date = str(datetime.date.today())

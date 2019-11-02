@@ -39,39 +39,46 @@ class Sansimera_data(object):
     def getImage(self, text):
         '''Convert url to local path.
            Download and resize images'''
-        relativeUrls = re.findall('href="(/[a-zA-Z./_0-9-]+)', text)
         yeartoBold = re.findall('href="/reviews/([0-9]+)">', text)
         if len(yeartoBold) == 0:
-            yeartoBold = re.findall('<div class="time text-primary">([0-9]+)</div>', text)
-        if len(relativeUrls) > 0:
-            for relurl in relativeUrls:
-                text = text.replace(relurl, self.baseurl[:-1] + relurl)
+            yeartoBold = re.findall('>([0-9]+)', text)
         if len(yeartoBold) > 0:
             self.year = yeartoBold[0]
             bC = ''
-
             if self.bC:
                 bC = ' π.Χ.'
             self.year = '<b>' + self.year + bC + ': </b><br/>'
-        iconUrl = 'None'
         try:
-            iconUrl = re.findall('src="(https://[a-zA-Z./_0-9-%]+)', text)[0]
+            # Remove the the url with the year (uneeded)
+            year_with_url = re.findall('<a class="text-info" href="https://www.sansimera.gr/reviews/[0-9 "></a]+', text)[0]
+            text = text.replace(year_with_url, '')
+        except IndexError:
+            pass
+
+        iconUrl = 'None'
+        iconUrl = ''
+        iconUrl = re.findall('<source data-srcset="(https:[/a-z.A-Z0-9-_]+)" media=', text)
+        if len(iconUrl) > 0:
+            iconUrl = iconUrl[0]
             iconName = os.path.basename(iconUrl)
-            req = requests.get(iconUrl, stream=True,
-                               headers={'User-agent': 'Mozilla/5.0'},
-                               timeout=10)
+            req = requests.get(
+                iconUrl,
+                stream=True,
+                headers={'User-agent': 'Mozilla/5.0'},
+                timeout=10
+            )
             if req.status_code == 200:
                 with open(iconName, 'wb') as iconfile:
                     iconfile.write(req.content)
             im = Image.open(iconName)
-            newim = im.resize((82, 64), Image.ANTIALIAS)
-            newim.save(iconName)
+            size = 128, 128
+            im.thumbnail(size, Image.ANTIALIAS)
+            im.save(iconName)
             # Convert the url to local name
-            newText = text.replace(iconUrl, iconName)
-            return newText
-        except:
-            print('getImage failed: ', '- URL: ', iconUrl, ' - Text :', text)
-            return text
+            img_source = re.findall('src="[:/a-z.A-Z0-9-_]+"', text)
+            for src in img_source:
+                text = text.replace(src, 'src="{}"'.format(iconName))
+        return text
 
     def said_know(self):
         listd = self.soup.find_all('div')
@@ -106,99 +113,52 @@ class Sansimera_data(object):
 
     def events(self):
         ''' Find the events, the births and the deaths '''
-        events = self.soup.find_all('dl')
-        count = 0
+        events = self.soup.find_all('li')
+        events_keys = [
+            'data-fancybox="event', 'data-fancybox="birth', 'data-fancybox="death'
+        ]
         for ev in events:
-            self.event_parser(ev, count)
-            count += 1
+            for key in events_keys:
+                if str(ev).count(key) == 1:
+                    self.event_parser(ev)
 
-    def remove_year(self, text):
-        # Remove the link with the year above the image
-        # Eg:'<a class="text-primary no-underline" href="https://www.sansimera.gr/reviews/1989">1989</a>'
-        url_year_to_delete = re.findall(
-            '<a class="text-primary no-underline" [\w=":/.>\d]+</a>',
-            text
-        )
-        px_year_to_delete = re.findall(
-            '<div class="time text-primary">[0-9]+</div>',
-            text
-        )
-        try:
-            text = text.replace(url_year_to_delete[0], '')
-        except:
-            print('Couldn\'t remove year url for: ', text)
-            pass
-        try:
-            text = text.replace(px_year_to_delete[0], '')
-        except:
-            print('Couldn\'t remove year url for: ', text)
-            pass
-        return text
-
-    def event_parser(self, event, count):
+    def event_parser(self, event):
         event = str(event)
-        event = event.split('</dd>')
         birth_death = ''
-        for ev in event:
-            if ev.count('<dt class="text-xs-center">π.Χ.</dt>') == 1:
-                self.bC = True
-                ev = ev.replace('π.Χ.', '')
-            else:
-                self.bC = False
-                ev = ev.replace('μ.Χ.', '')
-            eventText_url_local = self.getImage(ev)
-            eventText_url_local = self.remove_year(eventText_url_local)
-            if ev.count('<small>(Γεν. ') or count == 2:
-                birth_death = '<br/><small><i>Θάνατος</i></small><br/>'
-            elif count == 1:
-                birth_death = '<br/><small><i>Γέννηση</small></i><br/>'
-            if eventText_url_local.count('href="https://') >= 1:
-                self.allList.append(
-                    str(
-                        '<br/>'
-                        + self.sanTitle
-                        + self.year
-                        + birth_death
-                        + eventText_url_local
-                    )
+        if event.count('π.Χ.</a>') == 1:
+            self.bC = True
+            event = event.replace('π.Χ.', '')
+        else:
+            self.bC = False
+            event = event.replace('μ.Χ.', '')
+        eventText_url_local = self.getImage(event)
+        if eventText_url_local.count('data-fancybox="death-') == 1:
+            birth_death = '<br/><small><i>Θάνατος</i></small><br/>'
+        elif eventText_url_local.count('data-fancybox="birth-') == 1:
+            birth_death = '<br/><small><i>Γέννηση</small></i><br/>'
+        if eventText_url_local.count('href="https://') >= 1:
+            self.allList.append(
+                str(
+                    '<br/>'
+                    + self.sanTitle
+                    + self.year
+                    + birth_death
+                    + eventText_url_local
                 )
+            )
 
     def days(self):
-        worldlist = [
-            str(
-                '<br/><b>'
-                + '&nbsp;' * 20
-                + 'Παγκόσμιες Ημέρες</b><br/>'
-            )
-        ]
-        lista = self.soup.find_all('a')
-        for tag in lista:
-            url = tag.get('href')
-            if isinstance(url, str):
-                if 'worldays' in url or 'namedays' in url:
-                    if 'worldays' in url:
-                        day = 'w'
-                    elif 'namedays' in url:
-                        day = 'n'
-                        title = (
-                            self.sanTitle
-                            + '<br/>'
-                            + '&nbsp;' * 20
-                            + '<b>Εορτολόγιο</b><br/>'
-                        )
-                    tag = str(tag)
-                    if 'Εορτολόγιο' in tag or 'Παγκόσμιες Ημέρες' in tag:
-                        continue
-                    # Parse with getImage() to expand relative urls
-                    tag = self.getImage(tag)
-                    if day == 'w':
-                        worldlist.append('<br/>' + tag + '.')
-                    elif day == 'n':
-                        tag = '<br>' + title + '<br/>' + tag
-                        self.allList.append(tag)
-        if len(worldlist) > 1:
-            worldays = ' '.join(worldlist)
-            worldays = '<b/>' + self.sanTitle + '<br/>' + worldays
+        world_days_title = (
+            '<br/><b>'
+            + '&nbsp;' * 20
+            + 'Παγκόσμιες Ημέρες</b><br/>'
+        )
+
+        lista = self.soup.find_all('ul', 'arrowlist')
+        if len(lista) > 0:
+            for day in lista:
+                world_days_title += str(day)
+            worldays = '<b/>' + self.sanTitle + '<br/>' + world_days_title
             self.allList.append(worldays)
 
     def getAll(self):
