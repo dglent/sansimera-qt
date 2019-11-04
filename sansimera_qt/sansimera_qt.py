@@ -28,7 +28,7 @@ except:
     from sansimera_qt import sansimera_fetch
     from sansimera_qt import sansimera_reminder
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 
 
 class Sansimera(QMainWindow):
@@ -166,13 +166,18 @@ class Sansimera(QMainWindow):
             self.menu.popup(QCursor.pos())
 
     def download(self):
+        self.gnomika_html = ''
         self.workThread = WorkThread()
         self.workThread.online_signal[bool].connect(self.status)
         self.workThread.finished.connect(self.window)
         self.workThread.event['QString'].connect(self.addlist)
         self.workThread.names['QString'].connect(self.nameintooltip)
         self.workThread.orthodox_signal.connect(self.orthodox_synarxistis)
+        self.workThread.gnomika_signal.connect(self.gnomika)
         self.workThread.start()
+
+    def gnomika(self, html):
+        self.gnomika_html = html
 
     def orthodox_synarxistis(self, html):
         self.lista.append(html)
@@ -206,6 +211,8 @@ class Sansimera(QMainWindow):
         self.eortazontes_shown = True
 
     def window(self):
+        # Add the gnomika at the end while downloading the images
+        self.lista.append(self.gnomika_html)
         if self.status_online:
             self.browser.clear()
             self.browser.append(self.lista[0])
@@ -234,7 +241,9 @@ class Sansimera(QMainWindow):
             <br/>των γεγονότων από την ιστοσελίδα <a href="http://www.sansimera.gr">
             www.sansimera.gr</a><br/>
             Πηγή εορτολογίου: <a href="http://www.saint.gr/index.aspx">
-            www.saint.gr</a>
+            www.saint.gr</a><br/>
+            Πηγή γνωμικών:<a href="https://www.gnomikologikon.gr">
+            www.gnomikologikon.gr</a>
             <p>Άδεια χρήσης: GPLv3 <br/>Python {1} - Qt {2} - PyQt {3} σε {4}""".format(
                 __version__, platform.python_version(),
                 QT_VERSION_STR, PYQT_VERSION_STR, platform.system()
@@ -247,6 +256,7 @@ class WorkThread(QThread):
     event = pyqtSignal(['QString'])
     names = pyqtSignal(['QString'])
     orthodox_signal = pyqtSignal(['QString'])
+    gnomika_signal = pyqtSignal(['QString'])
 
     def __init__(self):
         QThread.__init__(self)
@@ -258,7 +268,9 @@ class WorkThread(QThread):
         fetch = sansimera_fetch.Sansimera_fetch()
         fetch.html()
         orthodox_names = fetch.orthodoxos_synarxistis()
+        gnomika = fetch.gnomika()
         self.orthodox_signal.emit(orthodox_names)
+        self.gnomika_signal.emit(gnomika)
         doc = QTextDocument()
         doc.setHtml(orthodox_names)
         text = doc.toPlainText()

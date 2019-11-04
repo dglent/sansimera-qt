@@ -6,7 +6,12 @@ import datetime
 import tempfile
 import urllib.request
 import re
-from PyQt5.QtCore import QObject
+from bs4 import BeautifulSoup
+from PyQt5.QtCore import QObject, QThread
+try:
+    import Image
+except ImportError:
+    from PIL import Image
 
 
 class Sansimera_fetch(QObject):
@@ -83,10 +88,7 @@ class Sansimera_fetch(QObject):
             self.online = False
 
     def orthodoxos_synarxistis(self):
-        req = urllib.request.Request('http://www.saint.gr/index.aspx')
-        response = urllib.request.urlopen(req)
-        page = response.read()
-        html = page.decode()
+        html = self.getHTML('http://www.saint.gr/index.aspx')
         eortazontes = re.findall(
             '''<div id="mEortologio" style="float:left;">[';/,()&(:#\\r\\n .<\S\w=">-]+</td></tr></table></div>''',
             html
@@ -103,9 +105,48 @@ class Sansimera_fetch(QObject):
             eortazontes = eortazontes.replace(tag, '')
         return eortazontes
 
-    def fetchDate(self):
-        date = str(datetime.date.today())
-        return date
+    def gnomika(self):
+        html = self.getHTML('https://www.gnomikologikon.gr/tyxaio.php')
+        soup = BeautifulSoup(html, features="lxml")
+        quotes = str(soup.find_all('table', 'quotes')[0])
+        images_source = re.findall('src="([:/a-z.A-Z0-9-_]+)"', quotes)
+        for img in images_source:
+            filename = self.tmppathname + '/' + os.path.basename(img)
+            quotes = quotes.replace(img, filename)
+
+        self.workThread = WorkThread(images_source, self.tmppathname)
+        self.workThread.start()
+
+        end_quote = re.findall('<span style="font-weight:600;">[0-9]+</span>', quotes)
+        for end in end_quote:
+            end = str(end)
+            quotes = quotes.replace(end, end + '<br/>')
+        return quotes
+
+    def getHTML(self, url):
+        req = urllib.request.Request(url)
+        response = urllib.request.urlopen(req, timeout=5)
+        page = response.read()
+        html = page.decode()
+        return html
+
+
+class WorkThread(QThread):
+
+    def __init__(self, images_source, tmppathname):
+        QThread.__init__(self)
+        self.images_source = images_source
+        self.tmppathname = tmppathname
+
+    def run(self):
+        for img in self.images_source:
+            filename = self.tmppathname + '/' + os.path.basename(img)
+            comm = ('wget --timeout=5 {0} -O {1}'.format('https://www.gnomikologikon.gr/' + img, filename))
+            os.system(comm)
+            im = Image.open(filename)
+            size = 80, 80
+            im.thumbnail(size, Image.ANTIALIAS)
+            im.save(filename)
 
 
 if __name__ == "__main__":

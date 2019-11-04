@@ -34,7 +34,7 @@ class Sansimera_data(object):
         os.chdir(self.fetch.tmppathname)
         if os.path.exists('sansimera_html'):
             with open('sansimera_html') as html:
-                self.soup = BeautifulSoup(html)
+                self.soup = BeautifulSoup(html, features="lxml")
 
     def getImage(self, text):
         '''Convert url to local path.
@@ -79,37 +79,6 @@ class Sansimera_data(object):
             for src in img_source:
                 text = text.replace(src, 'src="{}"'.format(iconName))
         return text
-
-    def said_know(self):
-        listd = self.soup.find_all('div')
-        count = 0
-        for div in listd:
-            tag = div.get('class')
-            if isinstance(tag, list):
-                if len(tag) > 1:
-                    # Find the Did You Know ...
-                    if tag[0] == 'widget' and tag[1] == 'col-xs-12':
-                        h3 = div.find_all('h3')
-
-                        if len(h3) == 1:
-                            h3 = h3[0]
-                            h3 = h3.text
-                            if h3 == 'ΗΞΕΡΕΣ ΟΤΙ...':
-                                didYouKnow = (str(listd[count]))
-                                # Convert url to local path
-                                didYouKnow_url_local = self.getImage(didYouKnow)
-                                # Change the tag to display the source image
-                                didYouKnow_url_local = didYouKnow_url_local.replace('data-src', 'src')
-                                self.allList.append(str(didYouKnow_url_local))
-                    # Find the He Said ...
-                    if tag[0] == 'widget' and tag[1] == 'widget-quotes':
-                        said = str(listd[count])
-                        # Convert url to local path
-                        who_url_local = self.getImage(said)
-                        # Change the tag to display the source image
-                        who_url_local = who_url_local.replace('data-src', 'src')
-                        self.allList.append(who_url_local)
-            count += 1
 
     def events(self):
         ''' Find the events, the births and the deaths '''
@@ -165,7 +134,6 @@ class Sansimera_data(object):
         self.allList = []
         if self.online:
             self.events()
-            self.said_know()
             self.days()
         if len(self.allList) == 0:
             self.allList.append(
