@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import glob
 import os
 from distutils.command.build import build
 from distutils.core import setup
@@ -9,9 +8,10 @@ from distutils.core import setup
 class BuildQm(build):
     os.system('pyrcc5 -o sansimera_qt/qrc_resources.py sansimera_qt/resources.qrc')
 
+
 setup(
     name='sansimera_qt',
-    version='0.6.1',
+    version='0.6.2',
     description='A system tray application for the namedays and the events of the day back in the history',
     author='Dimitrios Glentadakis',
     author_email='dglent@free.fr',
@@ -45,5 +45,5 @@ setup(
             'Programming Language :: Python :: 3',
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: Implementation :: CPython',
-        ],
+    ],
 )

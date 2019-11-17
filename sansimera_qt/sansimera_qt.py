@@ -28,7 +28,7 @@ except:
     from sansimera_qt import sansimera_fetch
     from sansimera_qt import sansimera_reminder
 
-__version__ = "0.6.1"
+__version__ = "0.6.2"
 
 
 class Sansimera(QMainWindow):
