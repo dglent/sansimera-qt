@@ -69,7 +69,6 @@ class Sansimera(QMainWindow):
         self.aboutAction.triggered.connect(self.about)
         self.browser = QTextBrowser()
         self.browser.setOpenExternalLinks(True)
-        self.setGeometry(600, 500, 400, 300)
         self.setWindowIcon(self.icon)
         self.setWindowTitle('Σαν σήμερα...')
         self.setCentralWidget(self.browser)
@@ -99,7 +98,7 @@ class Sansimera(QMainWindow):
         controls.addAction(self.previousAction)
         controls.addAction(self.nextAction)
         controls.addAction(self.refreshAction)
-        self.restoreState(self.settings.value("MainWindow/State", QByteArray()))
+        self.restoreGeometry(self.settings.value("MainWindow/Geometry", QByteArray()))
         self.refresh()
 
     def interval_namedays(self):
@@ -225,8 +224,11 @@ class Sansimera(QMainWindow):
             self.timer.singleShot(5000, self.refresh)
             self.tentatives += 1
 
+    def hideEvent(self, event):
+        self.settings.setValue("MainWindow/Geometry", self.saveGeometry())
+
     def closeEvent(self, event):
-        self.settings.setValue("MainWindow/State", self.saveState())
+        self.settings.setValue("MainWindow/Geometry", self.saveGeometry())
 
     def about(self):
         self.menu.hide()

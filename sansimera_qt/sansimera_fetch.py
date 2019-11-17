@@ -121,6 +121,7 @@ class Sansimera_fetch(QObject):
         for end in end_quote:
             end = str(end)
             quotes = quotes.replace(end, end + '<br/>')
+        quotes = quotes.replace('href="', 'href="https://www.gnomikologikon.gr/')
         return quotes
 
     def getHTML(self, url):
@@ -152,5 +153,5 @@ class WorkThread(QThread):
 if __name__ == "__main__":
     a1 = Sansimera_fetch()
     lista = a1.html()
-    eortologio = a1.eortologio()
     orthodox = a1.orthodoxos_synarxistis()
+    gnomika = a1.gnomika()

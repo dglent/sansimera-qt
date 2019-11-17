@@ -57,7 +57,7 @@ class Sansimera_data(object):
 
         iconUrl = 'None'
         iconUrl = ''
-        iconUrl = re.findall('<source data-srcset="(https:[/a-z.A-Z0-9-_]+)" media=', text)
+        iconUrl = re.findall('<source data-srcset="(https:[/a-z.A-Z0-9-_()]+)" media=', text)
         if len(iconUrl) > 0:
             iconUrl = iconUrl[0]
             iconName = os.path.basename(iconUrl)
