@@ -10,7 +10,7 @@ except ImportError:
 
 try:
     import sansimera_fetch
-except:
+except ImportError:
     from sansimera_qt import sansimera_fetch
 
 
@@ -106,6 +106,7 @@ class Sansimera_data(object):
         elif eventText_url_local.count('data-fancybox="birth-') == 1:
             birth_death = '<br/><small><i>Γέννηση</small></i><br/>'
         if eventText_url_local.count('href="https://') >= 1:
+            eventText_url_local = eventText_url_local.replace('href="', 'href="https://www.sansimera.gr')
             self.allList.append(
                 str(
                     '<br/>'
