@@ -70,10 +70,10 @@ class Sansimera_data(object):
             if req.status_code == 200:
                 with open(iconName, 'wb') as iconfile:
                     iconfile.write(req.content)
-            im = Image.open(iconName)
-            size = 128, 128
-            im.thumbnail(size, Image.ANTIALIAS)
-            im.save(iconName)
+                im = Image.open(iconName)
+                size = 128, 128
+                im.thumbnail(size, Image.ANTIALIAS)
+                im.save(iconName)
             # Convert the url to local name
             img_source = re.findall('src="[:/a-z.A-Z0-9-_]+"', text)
             for src in img_source:
