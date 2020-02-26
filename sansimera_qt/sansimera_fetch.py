@@ -74,7 +74,7 @@ class Sansimera_fetch(QObject):
         os.system(comm0)
         # FIXME to use urlib.request instead
         comm = (
-            'wget --timeout=5 --user-agent="Sansimera PyQt" '
+            'wget --timeout=10 --user-agent="Sansimera PyQt" '
             + link
             + ' -O '
             + filename
@@ -99,7 +99,7 @@ class Sansimera_fetch(QObject):
         image_url = re.findall('src="(http://www.saint.gr/addons/photos/[0-9a-zA-Z.]+)"', html)[0]
         image_abs_path = re.findall('src="http://www.saint.gr/addons/photos/[0-9a-zA-Z.]+"', html)[0]
         filename = self.tmppathname + '/' + image_fname
-        comm = ('wget --timeout=5 {0} -O {1}'.format(image_url, filename))
+        comm = ('wget --timeout=10 {0} -O {1}'.format(image_url, filename))
         os.system(comm)
         eortazontes = eortazontes.replace(image_abs_path, 'src="{0}"'.format(filename))
         # Too big title
@@ -128,7 +128,7 @@ class Sansimera_fetch(QObject):
 
     def getHTML(self, url):
         req = urllib.request.Request(url)
-        response = urllib.request.urlopen(req, timeout=5)
+        response = urllib.request.urlopen(req, timeout=10)
         page = response.read()
         html = page.decode()
         return html
@@ -140,11 +140,11 @@ class WorkThread(QThread):
         QThread.__init__(self)
         self.images_source = images_source
         self.tmppathname = tmppathname
-        ThreadPool(20).imap_unordered(self.download, images_source)
+        ThreadPool(10).imap_unordered(self.download, images_source)
 
     def download(self, img):
         filename = self.tmppathname + '/' + os.path.basename(img)
-        comm = ('wget --timeout=5 {0} -O {1}'.format('https://www.gnomikologikon.gr/' + img, filename))
+        comm = ('wget --timeout=10 {0} -O {1}'.format('https://www.gnomikologikon.gr/' + img, filename))
         os.system(comm)
         im = Image.open(filename)
         size = 80, 80
