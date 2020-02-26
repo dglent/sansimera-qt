@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 # Purpose: Display the events of the day back in the history
 # from the website www.sansimera.gr
 # Author: Dimitrios Glentadakis dglent@free.fr
@@ -70,7 +69,7 @@ class Sansimera(QMainWindow):
         self.browser = QTextBrowser()
         self.browser.setOpenExternalLinks(True)
         self.setWindowIcon(self.icon)
-        self.setWindowTitle('Σαν σήμερα...')
+        self.setWindowTitle(f'Σαν σήμερα... {__version__}')
         self.setCentralWidget(self.browser)
         self.systray.show()
         self.systray.activated.connect(self.activate)
@@ -295,6 +294,7 @@ def main():
     app.setApplicationName('sansimera-qt')
     prog = Sansimera()
     app.exec_()
+
 
 if __name__ == '__main__':
     main()
