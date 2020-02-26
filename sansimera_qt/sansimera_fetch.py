@@ -8,6 +8,8 @@ import urllib.request
 import re
 from bs4 import BeautifulSoup
 from PyQt5.QtCore import QObject, QThread
+from multiprocessing.pool import ThreadPool
+
 try:
     import Image
 except ImportError:
@@ -138,16 +140,16 @@ class WorkThread(QThread):
         QThread.__init__(self)
         self.images_source = images_source
         self.tmppathname = tmppathname
+        ThreadPool(20).imap_unordered(self.download, images_source)
 
-    def run(self):
-        for img in self.images_source:
-            filename = self.tmppathname + '/' + os.path.basename(img)
-            comm = ('wget --timeout=5 {0} -O {1}'.format('https://www.gnomikologikon.gr/' + img, filename))
-            os.system(comm)
-            im = Image.open(filename)
-            size = 80, 80
-            im.thumbnail(size, Image.ANTIALIAS)
-            im.save(filename)
+    def download(self, img):
+        filename = self.tmppathname + '/' + os.path.basename(img)
+        comm = ('wget --timeout=5 {0} -O {1}'.format('https://www.gnomikologikon.gr/' + img, filename))
+        os.system(comm)
+        im = Image.open(filename)
+        size = 80, 80
+        im.thumbnail(size, Image.ANTIALIAS)
+        im.save(filename)
 
 
 if __name__ == "__main__":
