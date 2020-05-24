@@ -27,7 +27,7 @@ except:
     from sansimera_qt import sansimera_fetch
     from sansimera_qt import sansimera_reminder
 
-__version__ = "0.6.2"
+__version__ = "0.7"
 
 
 class Sansimera(QMainWindow):
@@ -69,7 +69,7 @@ class Sansimera(QMainWindow):
         self.browser = QTextBrowser()
         self.browser.setOpenExternalLinks(True)
         self.setWindowIcon(self.icon)
-        self.setWindowTitle(f'Σαν σήμερα... {__version__}')
+        self.setWindowTitle('Σαν σήμερα...')
         self.setCentralWidget(self.browser)
         self.systray.show()
         self.systray.activated.connect(self.activate)
