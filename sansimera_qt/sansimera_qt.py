@@ -15,13 +15,17 @@ from PyQt5.QtWidgets import (
 import re
 import platform
 import sys
+import datetime
+import traceback
+import os
+from io import StringIO
 
 try:
     import qrc_resources
     import sansimera_data
     import sansimera_fetch
     import sansimera_reminder
-except:
+except ImportError:
     from sansimera_qt import qrc_resources
     from sansimera_qt import sansimera_data
     from sansimera_qt import sansimera_fetch
@@ -270,12 +274,14 @@ class WorkThread(QThread):
         fetch.html()
         orthodox_names = fetch.orthodoxos_synarxistis()
         gnomika = fetch.gnomika()
-        self.orthodox_signal.emit(orthodox_names)
+
         self.gnomika_signal.emit(gnomika)
-        doc = QTextDocument()
-        doc.setHtml(orthodox_names)
-        text = doc.toPlainText()
-        self.names.emit(text)
+        if orthodox_names:
+            self.orthodox_signal.emit(orthodox_names)
+            doc = QTextDocument()
+            doc.setHtml(orthodox_names)
+            text = doc.toPlainText()
+            self.names.emit(text)
 
         online = fetch.online
         data = sansimera_data.Sansimera_data()
@@ -294,6 +300,44 @@ def main():
     app.setApplicationName('sansimera-qt')
     prog = Sansimera()
     app.exec_()
+
+
+def excepthook(exc_type, exc_value, tracebackobj):
+    """
+    Global function to catch unhandled exceptions.
+
+    Parameters
+    ----------
+    exc_type : str
+        exception type
+    exc_value : int
+        exception value
+    tracebackobj : traceback
+        traceback object
+    """
+    separator = '-' * 80
+
+    now = f'{datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")} CRASH:'
+
+    info = StringIO()
+    traceback.print_tb(tracebackobj, None, info)
+    info.seek(0)
+    info = info.read()
+
+    errmsg = '{}\t \n{}'.format(exc_type, exc_value)
+    sections = [now, separator, errmsg, separator, info]
+    msg = '\n'.join(sections)
+
+    print(msg)
+
+    settings = QSettings()
+    logPath = os.path.dirname(settings.fileName())
+    logFile = f'{logPath}/sansimera.log'
+    with open(logFile, 'a') as logfile:
+        logfile.write(msg)
+
+
+sys.excepthook = excepthook
 
 
 if __name__ == '__main__':

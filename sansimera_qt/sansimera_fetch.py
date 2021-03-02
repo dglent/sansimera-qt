@@ -91,10 +91,13 @@ class Sansimera_fetch(QObject):
 
     def orthodoxos_synarxistis(self):
         html = self.getHTML('http://www.saint.gr/index.aspx')
-        eortazontes = re.findall(
-            '''<div id="mEortologio" style="float:left;">[';/,()&(:#\\r\\n .<\S\w=">-]+</td></tr></table></div>''',
-            html
-        )[0]
+        try:
+            eortazontes = re.findall(
+                r'''<div id="mEortologio" style="float:left;">[';/,()&(:#\\r\\n .<\S\w=">-]+</td></tr></table></div>''',
+                html
+            )[0]
+        except IndexError:
+            return False
         image_fname = re.findall('src="http://www.saint.gr/addons/photos/([0-9a-zA-Z.]+)"', html)[0]
         image_url = re.findall('src="(http://www.saint.gr/addons/photos/[0-9a-zA-Z.]+)"', html)[0]
         image_abs_path = re.findall('src="http://www.saint.gr/addons/photos/[0-9a-zA-Z.]+"', html)[0]
