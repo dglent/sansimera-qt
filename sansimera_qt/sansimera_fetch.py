@@ -9,6 +9,7 @@ import re
 from bs4 import BeautifulSoup
 from PyQt5.QtCore import QObject, QThread
 from multiprocessing.pool import ThreadPool
+from socket import timeout
 
 try:
     import Image
@@ -17,6 +18,12 @@ except ImportError:
 
 
 class Sansimera_fetch(QObject):
+    dico_days_genitive = {
+        '01': 'Ιανουαρίου', '02': 'Φεβρουαρίου', '03': 'Μαρτίου',
+        '04': 'Απριλίου', '05': 'Μαίου', '06': 'Ιουνίου',
+        '07': 'Ιουλίου', '08': 'Αυγούστου', '09': 'Σεπτεμβρίου',
+        '10': 'Οκτωβρίου', '11': 'Νοεμβρίου', '12': 'Δεκεμβρίου'
+    }
 
     def __init__(self, parent=None):
         super(Sansimera_fetch, self).__init__(parent)
@@ -51,17 +58,13 @@ class Sansimera_fetch(QObject):
         return month
 
     def monthname(self):
-        dico = {'01': 'Ιανουαρίου', '02': 'Φεβρουαρίου', '03': 'Μαρτίου',
-                '04': 'Απριλίου', '05': 'Μαίου', '06': 'Ιουνίου',
-                '07': 'Ιουλίου', '08': 'Αυγούστου', '09': 'Σεπτεμβρίου',
-                '10': 'Οκτωβρίου', '11': 'Νοεμβρίου', '12': 'Δεκεμβρίου'}
         month = self.ponth()
         im = str(
             ' ' * 10
             + '...Σαν σήμερα '
             + self.pay()
             + ' '
-            + dico[month]
+            + self.dico_days_genitive[month]
             + '\n'
         )
         return im
@@ -90,25 +93,34 @@ class Sansimera_fetch(QObject):
             self.online = False
 
     def orthodoxos_synarxistis(self):
-        html = self.getHTML('http://www.saint.gr/index.aspx')
-        try:
-            eortazontes = re.findall(
-                r'''<div id="mEortologio" style="float:left;">[';/,()&(:#\\r\\n .<\S\w=">-]+</td></tr></table></div>''',
-                html
-            )[0]
-        except IndexError:
+        tries = 0
+        while True:
+            if tries >= 5:
+                break
+            html = self.getHTML('http://www.saint.gr/calendar.aspx')
+            if html:
+                break
+            else:
+                tries += 1
+        if not html:
             return False
-        image_fname = re.findall('src="http://www.saint.gr/addons/photos/([0-9a-zA-Z.]+)"', html)[0]
-        image_url = re.findall('src="(http://www.saint.gr/addons/photos/[0-9a-zA-Z.]+)"', html)[0]
-        image_abs_path = re.findall('src="http://www.saint.gr/addons/photos/[0-9a-zA-Z.]+"', html)[0]
-        filename = self.tmppathname + '/' + image_fname
-        comm = ('wget --timeout=10 {0} -O {1}'.format(image_url, filename))
-        os.system(comm)
-        eortazontes = eortazontes.replace(image_abs_path, 'src="{0}"'.format(filename))
-        # Too big title
-        for tag in ['<h1 class="pagetitle">', '</h1>']:
-            eortazontes = eortazontes.replace(tag, '')
-        return eortazontes
+        days = html.split('<div class="w3-circle w3-theme-d5 myDayBullet">')
+        pay = self.pay()
+        for day in days[1:]:
+            dd = re.findall('^([0-9]+)<', day)
+            if int(pay) == int(dd[0]):
+                image_fname = re.findall(r'img src="/images/calendar/([a-zA-Z0-9\.]+)"', day)[0]
+                image_url = f'http://www.saint.gr/images/calendar/{image_fname}'
+                image_abs_path = re.findall(r'img src="/images/calendar/[a-zA-Z0-9\.]+"', day)[0]
+                filename = self.tmppathname + '/' + image_fname
+                comm = ('wget --timeout=10 {0} -O {1}'.format(image_url, filename))
+                os.system(comm)
+                day = day.replace(image_abs_path, 'img src="{0}"'.format(filename))
+                day = day.replace('</div></div>', f' {self.dico_days_genitive[self.ponth()]}', 1)
+                perissotera_url = re.findall(r'<a href="([\w\W]+index.aspx)', day, re.U)[0]
+                day = day.replace(perissotera_url, fr'http://www.saint.gr/{perissotera_url}')
+                return day
+        return False
 
     def gnomika(self):
         html = self.getHTML('https://www.gnomikologikon.gr/tyxaio.php')
@@ -130,11 +142,14 @@ class Sansimera_fetch(QObject):
         return quotes
 
     def getHTML(self, url):
-        req = urllib.request.Request(url)
-        response = urllib.request.urlopen(req, timeout=10)
-        page = response.read()
-        html = page.decode()
-        return html
+        try:
+            req = urllib.request.Request(url)
+            response = urllib.request.urlopen(req, timeout=10)
+            page = response.read()
+            html = page.decode()
+            return html
+        except timeout:
+            return False
 
 
 class WorkThread(QThread):

@@ -31,7 +31,7 @@ except ImportError:
     from sansimera_qt import sansimera_fetch
     from sansimera_qt import sansimera_reminder
 
-__version__ = "0.7"
+__version__ = "0.8"
 
 
 class Sansimera(QMainWindow):
@@ -170,10 +170,10 @@ class Sansimera(QMainWindow):
     def download(self):
         self.gnomika_html = ''
         self.workThread = WorkThread()
-        self.workThread.online_signal[bool].connect(self.status)
+        self.workThread.online_signal.connect(self.status)
         self.workThread.finished.connect(self.window)
-        self.workThread.event['QString'].connect(self.addlist)
-        self.workThread.names['QString'].connect(self.nameintooltip)
+        self.workThread.event.connect(self.addlist)
+        self.workThread.names.connect(self.nameintooltip)
         self.workThread.orthodox_signal.connect(self.orthodox_synarxistis)
         self.workThread.gnomika_signal.connect(self.gnomika)
         self.workThread.start()
@@ -278,17 +278,17 @@ class WorkThread(QThread):
         self.gnomika_signal.emit(gnomika)
         if orthodox_names:
             self.orthodox_signal.emit(orthodox_names)
-            doc = QTextDocument()
-            doc.setHtml(orthodox_names)
-            text = doc.toPlainText()
-            self.names.emit(text)
+            # Extract the names from the html text
+            self.names.emit(re.findall(r'title="([\w\W]+)" class', orthodox_names, re.U)[0])
+        else:
+            self.names.emit('http://www.saint.gr/calendar.aspx')
 
         online = fetch.online
         data = sansimera_data.Sansimera_data()
         lista = data.getAll()
         for i in lista:
-            self.event['QString'].emit(i)
-        self.online_signal[bool].emit(online)
+            self.event.emit(i)
+        self.online_signal.emit(online)
         return
 
 
