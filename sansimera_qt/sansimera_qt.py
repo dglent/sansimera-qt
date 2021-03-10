@@ -200,7 +200,7 @@ class Sansimera(QMainWindow):
         show_notifier_text = show_notifier_text.replace('\n\n', '\n')
         show_notifier_text = show_notifier_text.replace('www.eortologio.gr)', 'www.eortologio.gr)\n')
         self.systray.showMessage('', show_notifier_text)
-        self.systray.setToolTip(show_notifier_text)
+        self.systray.setToolTip(show_notifier_text.replace(',', '\n'))
 
     def nameintooltip(self, text):
         self.eortazontes_names = text
