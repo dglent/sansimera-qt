@@ -119,6 +119,7 @@ class Sansimera_fetch(QObject):
                 day = day.replace('</div></div>', f' {self.dico_days_genitive[self.ponth()]}', 1)
                 perissotera_url = re.findall(r'<a href="([\w\W]+index.aspx)', day, re.U)[0]
                 day = day.replace(perissotera_url, fr'http://www.saint.gr/{perissotera_url}')
+                day = f'<center>{day}</center>'
                 return day
         return False
 
