@@ -106,9 +106,12 @@ class Sansimera_fetch(QObject):
             return False
         days = html.split('<div class="w3-circle w3-theme-d5 myDayBullet">')
         pay = self.pay()
+        first_of_month = False
         for day in days[1:]:
             dd = re.findall('^([0-9]+)<', day)
-            if int(pay) == int(dd[0]):
+            if int(dd[0]) == 1:
+                first_of_month = True
+            if int(pay) == int(dd[0]) and first_of_month:
                 image_fname = re.findall(r'img src="/images/calendar/([a-zA-Z0-9\.]+)"', day)[0]
                 image_url = f'http://www.saint.gr/images/calendar/{image_fname}'
                 image_abs_path = re.findall(r'img src="/images/calendar/[a-zA-Z0-9\.]+"', day)[0]
