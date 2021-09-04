@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 if __name__ == '__main__':
     from sansimera_qt import sansimera_qt
