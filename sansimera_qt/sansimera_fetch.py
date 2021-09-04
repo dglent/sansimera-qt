@@ -146,8 +146,9 @@ class Sansimera_fetch(QObject):
         return quotes
 
     def getHTML(self, url):
+        header = {'User-Agent': 'Mozilla/5.0 (X11; Linux)'}
         try:
-            req = urllib.request.Request(url)
+            req = urllib.request.Request(url, headers=header)
             response = urllib.request.urlopen(req, timeout=10)
             page = response.read()
             html = page.decode()
