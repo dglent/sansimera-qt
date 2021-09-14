@@ -54,6 +54,7 @@ class Sansimera(QMainWindow):
     def gui(self):
         self.systray = QSystemTrayIcon()
         self.icon = QIcon(':/sansimera.png')
+        toggle_icon = QIcon(':/toggle_window')
         self.systray.setIcon(self.icon)
         self.systray.setToolTip('Σαν σήμερα...')
         self.menu = QMenu()
@@ -61,6 +62,10 @@ class Sansimera(QMainWindow):
         self.refreshAction = QAction('&Ανανέωση', self)
         self.aboutAction = QAction('&Σχετικά', self)
         self.notification_interval = QAction('Ει&δοποίηση εορταζόντων', self)
+        toggle_window_action = QAction('Εναλλαγή παραθύρου', self)
+        toggle_window_action.setIcon(toggle_icon)
+        toggle_window_action.triggered.connect(self.toggle_main_window)
+        self.menu.addAction(toggle_window_action)
         self.menu.addAction(self.notification_interval)
         self.menu.addAction(self.refreshAction)
         self.menu.addAction(self.aboutAction)
@@ -84,6 +89,7 @@ class Sansimera(QMainWindow):
         iicon = QIcon(':/info')
         qicon = QIcon(':/exit')
         inicon = QIcon(':/notifications')
+
         self.nextAction = QAction('Επόμενο', self)
         self.nextAction.setIcon(nicon)
         self.previousAction = QAction('Προηγούμενο', self)
@@ -152,6 +158,12 @@ class Sansimera(QMainWindow):
         self.tentatives = 0
         self.eortazontes_shown = False
         self.download()
+
+    def toggle_main_window(self):
+        if self.isVisible():
+            self.hide()
+        else:
+            self.show()
 
     def activate(self, reason):
         self.menu.hide()

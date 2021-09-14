@@ -7,5 +7,6 @@
 <file alias="exit.png">images/application-exit.png</file>
 <file alias="info.png">images/dialog-information.png</file>
 <file alias="notifications.png">images/preferences-desktop-notification-bell.png</file>
+<file alias="toggle_window.png">images/preferences-system-windows.png</file>
 </qresource>
 </RCC>
