@@ -7,7 +7,7 @@ from PyQt5.QtCore import (
     QThread, QTimer, Qt, QSettings, QByteArray, pyqtSignal,
     QT_VERSION_STR, PYQT_VERSION_STR
 )
-from PyQt5.QtGui import QIcon, QCursor, QTextCursor, QTextDocument
+from PyQt5.QtGui import QIcon, QCursor, QTextCursor
 from PyQt5.QtWidgets import (
     QAction, QMainWindow, QApplication, QSystemTrayIcon,
     QMenu, QTextBrowser, QToolBar, QMessageBox
@@ -233,12 +233,6 @@ class Sansimera(QMainWindow):
             self.browser.append(self.lista[0])
             self.browser.moveCursor(QTextCursor.Start)
             self.lista_pos = 0
-            return
-        # else:
-        #     if self.tentatives > 2:
-        #         return
-        #     self.timer.singleShot(5000, self.refresh)
-        #     self.tentatives += 1
 
     def hideEvent(self, event):
         self.settings.setValue("MainWindow/Geometry", self.saveGeometry())
