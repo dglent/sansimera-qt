@@ -48,6 +48,7 @@ class Sansimera(QMainWindow):
         self.gui()
         self.lista = []
         self.lista_pos = 0
+        self.status_online = False
         self.eortazontes_shown = False
         self.eortazontes_names = ''
 
@@ -61,11 +62,11 @@ class Sansimera(QMainWindow):
         self.exitAction = QAction('&Έξοδος', self)
         self.refreshAction = QAction('&Ανανέωση', self)
         self.aboutAction = QAction('&Σχετικά', self)
-        self.notification_interval = QAction('Ει&δοποίηση εορταζόντων', self)
         toggle_window_action = QAction('Εναλλαγή παραθύρου', self)
         toggle_window_action.setIcon(toggle_icon)
         toggle_window_action.triggered.connect(self.toggle_main_window)
         self.menu.addAction(toggle_window_action)
+        self.notification_interval = QAction('Ει&δοποίηση εορταζόντων', self)
         self.menu.addAction(self.notification_interval)
         self.menu.addAction(self.refreshAction)
         self.menu.addAction(self.aboutAction)
@@ -89,7 +90,6 @@ class Sansimera(QMainWindow):
         iicon = QIcon(':/info')
         qicon = QIcon(':/exit')
         inicon = QIcon(':/notifications')
-
         self.nextAction = QAction('Επόμενο', self)
         self.nextAction.setIcon(nicon)
         self.previousAction = QAction('Προηγούμενο', self)
@@ -165,6 +165,7 @@ class Sansimera(QMainWindow):
         else:
             self.show()
 
+
     def activate(self, reason):
         self.menu.hide()
         state = self.isVisible()
@@ -227,17 +228,17 @@ class Sansimera(QMainWindow):
     def window(self):
         # Add the gnomika at the end while downloading the images
         self.lista.append(self.gnomika_html)
-        if self.status_online:
+        if self.status_online or len(self.lista) > 0:
             self.browser.clear()
             self.browser.append(self.lista[0])
             self.browser.moveCursor(QTextCursor.Start)
             self.lista_pos = 0
             return
-        else:
-            if self.tentatives == 10:
-                return
-            self.timer.singleShot(5000, self.refresh)
-            self.tentatives += 1
+        # else:
+        #     if self.tentatives > 2:
+        #         return
+        #     self.timer.singleShot(5000, self.refresh)
+        #     self.tentatives += 1
 
     def hideEvent(self, event):
         self.settings.setValue("MainWindow/Geometry", self.saveGeometry())
@@ -284,12 +285,13 @@ class WorkThread(QThread):
     def run(self):
         fetch = sansimera_fetch.Sansimera_fetch()
         fetch.html()
-        orthodox_names = fetch.orthodoxos_synarxistis()
+        orthodox_names, err = fetch.orthodoxos_synarxistis()
         gnomika = fetch.gnomika()
 
         self.gnomika_signal.emit(gnomika)
-        if orthodox_names:
-            self.orthodox_signal.emit(orthodox_names)
+        # emit Text or False
+        self.orthodox_signal.emit(orthodox_names or err)
+        if orthodox_names and not err:
             # Extract the names from the html text
             self.names.emit(re.findall(r'title="([\w\W]+)" class', orthodox_names, re.U)[0])
         else:

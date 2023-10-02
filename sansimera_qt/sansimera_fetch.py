@@ -89,21 +89,20 @@ class Sansimera_fetch(QObject):
                 check_line = html_file.read()
                 if check_line == '':
                     self.online = False
-        except:
+        except Exception:
             self.online = False
 
     def orthodoxos_synarxistis(self):
         tries = 0
-        while True:
-            if tries >= 5:
-                break
-            html = self.getHTML('http://www.saint.gr/calendar.aspx')
+        while tries < 2:
+            html, err = self.getHTML('http://www.saint.gr/calendar.aspx')
             if html:
                 break
             else:
                 tries += 1
         if not html:
-            return False
+            return False, err
+        err = "Error"
         days = html.split('<div class="w3-circle w3-theme-d5 myDayBullet">')
         pay = self.pay()
         first_of_month = False
@@ -123,11 +122,11 @@ class Sansimera_fetch(QObject):
                 perissotera_url = re.findall(r'<a href="([\w\W]+index.aspx)', day, re.U)[0]
                 day = day.replace(perissotera_url, fr'http://www.saint.gr/{perissotera_url}')
                 day = f'<center>{day}</center>'
-                return day
-        return False
+                return day, True
+        return False, err
 
     def gnomika(self):
-        html = self.getHTML('https://www.gnomikologikon.gr/tyxaio.php')
+        html, err = self.getHTML('https://www.gnomikologikon.gr/tyxaio.php')
         soup = BeautifulSoup(html, features="lxml")
         quotes = str(soup.find_all('table', 'quotes')[0])
         images_source = re.findall('src="([:/a-z.A-Z0-9-_]+)"', quotes)
@@ -152,9 +151,11 @@ class Sansimera_fetch(QObject):
             response = urllib.request.urlopen(req, timeout=10)
             page = response.read()
             html = page.decode()
-            return html
-        except timeout:
-            return False
+            return html, False
+        except timeout as err:
+            return False, str(err)
+        except (urllib.request.HTTPError, urllib.error.URLError) as err:
+            return False, str(err)
 
 
 class WorkThread(QThread):
