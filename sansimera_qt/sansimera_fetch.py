@@ -122,7 +122,7 @@ class Sansimera_fetch(QObject):
                 perissotera_url = re.findall(r'<a href="([\w\W]+index.aspx)', day, re.U)[0]
                 day = day.replace(perissotera_url, fr'http://www.saint.gr/{perissotera_url}')
                 day = f'<center>{day}</center>'
-                return day, True
+                return day, False
         return False, err
 
     def gnomika(self):
