@@ -172,7 +172,7 @@ class WorkThread(QThread):
         os.system(comm)
         im = Image.open(filename)
         size = 80, 80
-        im.thumbnail(size, Image.ANTIALIAS)
+        im.thumbnail(size, Image.Resampling.LANCZOS)
         im.save(filename)
 
 
