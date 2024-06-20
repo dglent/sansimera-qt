@@ -289,7 +289,7 @@ class WorkThread(QThread):
             # Extract the names from the html text
             self.names.emit(re.findall(r'title="([\w\W]+)" class', orthodox_names, re.U)[0])
         else:
-            self.names.emit('http://www.saint.gr/calendar.aspx')
+            self.names.emit('https://www.saint.gr/calendar.aspx')
 
         online = fetch.online
         data = sansimera_data.Sansimera_data()

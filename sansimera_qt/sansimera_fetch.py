@@ -95,7 +95,7 @@ class Sansimera_fetch(QObject):
     def orthodoxos_synarxistis(self):
         tries = 0
         while tries < 2:
-            html, err = self.getHTML('http://www.saint.gr/calendar.aspx')
+            html, err = self.getHTML('https://www.saint.gr/calendar.aspx')
             if html:
                 break
             else:
@@ -112,7 +112,7 @@ class Sansimera_fetch(QObject):
                 first_of_month = True
             if int(pay) == int(dd[0]) and first_of_month:
                 image_fname = re.findall(r'img src="/images/calendar/([a-zA-Z0-9\.]+)"', day)[0]
-                image_url = f'http://www.saint.gr/images/calendar/{image_fname}'
+                image_url = f'https://www.saint.gr/images/calendar/{image_fname}'
                 image_abs_path = re.findall(r'img src="/images/calendar/[a-zA-Z0-9\.]+"', day)[0]
                 filename = self.tmppathname + '/' + image_fname
                 comm = ('wget --timeout=10 {0} -O {1}'.format(image_url, filename))
@@ -120,7 +120,7 @@ class Sansimera_fetch(QObject):
                 day = day.replace(image_abs_path, 'img src="{0}"'.format(filename))
                 day = day.replace('</div></div>', f' {self.dico_days_genitive[self.ponth()]}', 1)
                 perissotera_url = re.findall(r'<a href="([\w\W]+index.aspx)', day, re.U)[0]
-                day = day.replace(perissotera_url, fr'http://www.saint.gr/{perissotera_url}')
+                day = day.replace(perissotera_url, fr'https://www.saint.gr/{perissotera_url}')
                 day = f'<center>{day}</center>'
                 return day, False
         return False, err
