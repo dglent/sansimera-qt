@@ -72,7 +72,7 @@ class Sansimera_data(object):
                     iconfile.write(req.content)
                 im = Image.open(iconName)
                 size = 128, 128
-                im.thumbnail(size, Image.ANTIALIAS)
+                im.thumbnail(size, Image.Resampling.LANCZOS)
                 im.save(iconName)
             # Convert the url to local name
             img_source = re.findall('src="[:/a-z.A-Z0-9-_]+"', text)
