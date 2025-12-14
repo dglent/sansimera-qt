@@ -166,6 +166,9 @@ class WorkThread(QThread):
         self.tmppathname = tmppathname
         ThreadPool(10).imap_unordered(self.download, images_source)
 
+    def __del__(self):
+        self.wait()
+
     def download(self, img):
         filename = self.tmppathname + '/' + os.path.basename(img)
         comm = ('wget --timeout=10 {0} -O {1}'.format('https://www.gnomikologikon.gr/' + img, filename))
