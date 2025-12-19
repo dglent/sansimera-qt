@@ -147,6 +147,8 @@ class Sansimera(QMainWindow):
     def refresh(self):
         try:
             if self.workThread.isRunning():
+                self.systray.setToolTip('Εργασία σε εξέλιξη, προσπαθήστε ξανά αργότερα...')
+                self.workThread.terminate()
                 return
         except AttributeError:
             pass
@@ -164,7 +166,6 @@ class Sansimera(QMainWindow):
             self.hide()
         else:
             self.show()
-
 
     def activate(self, reason):
         self.menu.hide()
@@ -196,6 +197,8 @@ class Sansimera(QMainWindow):
 
     def orthodox_synarxistis(self, html):
         self.lista.append(html)
+        self.browser.clear()
+        self.browser.append(html)
 
     def addlist(self, text):
         self.lista.append(text)
