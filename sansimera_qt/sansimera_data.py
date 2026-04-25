@@ -18,6 +18,7 @@ class Sansimera_data(object):
     def __init__(self):
         self.allList = []
         self.addBC = False
+        self.error_message = ''
         self.baseurl = 'https://www.sansimera.gr/'
         self.fetch = sansimera_fetch.Sansimera_fetch()
         self.online = True
@@ -27,8 +28,13 @@ class Sansimera_data(object):
             if ss != '':
                 self.online = True
             arxeio.close()
-        except:
+        except Exception:
             self.online = False
+        if os.path.exists(self.fetch.error_filename):
+            with open(self.fetch.error_filename, 'r', encoding='utf-8') as error_file:
+                self.error_message = error_file.read().strip()
+        else:
+            self.error_message = ''
         self.month = self.fetch.monthname()
         self.sanTitle = '&nbsp;' * 10 + self.month
         os.chdir(self.fetch.tmppathname)
@@ -139,11 +145,14 @@ class Sansimera_data(object):
             self.events()
             self.days()
         if len(self.allList) == 0:
+            fallback_message = self.error_message or (
+                'Δεν βρέθηκαν γεγονότα, ελέγξτε τη σύνδεσή σας.'
+            )
             self.allList.append(
                 '<br/>'
                 + self.sanTitle
-                + '<br/><br/>Δεν βρέθηκαν γεγονότα,'
-                + 'ελέγξτε τη σύνδεσή σας.'
+                + '<br/><br/>'
+                + fallback_message
             )
         return self.allList
 
