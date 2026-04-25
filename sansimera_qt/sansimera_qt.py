@@ -31,7 +31,7 @@ except ImportError:
     from sansimera_qt import sansimera_fetch
     from sansimera_qt import sansimera_reminder
 
-__version__ = "1.1.1"
+__version__ = "1.2.0"
 
 
 class Sansimera(QMainWindow):
