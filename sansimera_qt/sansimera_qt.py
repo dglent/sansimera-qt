@@ -111,6 +111,7 @@ class Sansimera(QMainWindow):
         if interval != '0':
             self.timer_reminder.start(int(interval) * 60 * 60 * 1000)
         self.tentatives = 0
+        self.refresh_pending = False
         self.gui()
         self.lista = []
         self.lista_pos = 0
@@ -160,7 +161,6 @@ class Sansimera(QMainWindow):
         self.nextAction = QAction('Επόμενο', self)
         self.nextAction.setIcon(nicon)
         self.previousAction = QAction('Προηγούμενο', self)
-        self.refreshAction.triggered.connect(self.refresh)
         self.nextAction.triggered.connect(self.nextItem)
         self.previousAction.triggered.connect(self.previousItem)
         self.previousAction.setIcon(picon)
@@ -213,18 +213,25 @@ class Sansimera(QMainWindow):
             return
 
     def refresh(self):
+        logging.info('Refresh requested')
         try:
             if self.workThread.isRunning():
-                self.systray.setToolTip('Εργασία σε εξέλιξη, προσπαθήστε ξανά αργότερα...')
-                self.workThread.terminate()
+                logging.info('Refresh requested while worker is running; queued')
+                self.refresh_pending = True
+                self.systray.setToolTip('Αναμονή για ανανέωση')
+                self.browser.clear()
+                self.browser.append('Αναμονή για ανανέωση...')
                 return
         except AttributeError:
+            logging.debug('No existing worker before refresh')
             pass
         self.menu.hide()
+        self.refreshAction.setEnabled(False)
         self.browser.clear()
         self.lista = []
         self.systray.setToolTip('Σαν σήμερα...')
         self.browser.append('Λήψη...')
+        logging.debug('Displayed loading message')
         self.tentatives = 0
         self.eortazontes_shown = False
         self.download()
@@ -311,6 +318,15 @@ class Sansimera(QMainWindow):
             self.browser.append(self.lista[0])
             self.browser.moveCursor(QTextCursor.Start)
             self.lista_pos = 0
+            logging.debug('Main window updated with first item')
+        else:
+            logging.warning('Worker finished without data to display')
+        if self.refresh_pending:
+            logging.info('Running queued refresh')
+            self.refresh_pending = False
+            QTimer.singleShot(0, self.refresh)
+        else:
+            self.refreshAction.setEnabled(True)
 
     def hideEvent(self, event):
         self.settings.setValue("MainWindow/Geometry", self.saveGeometry())

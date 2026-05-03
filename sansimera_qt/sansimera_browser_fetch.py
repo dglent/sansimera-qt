@@ -116,9 +116,9 @@ def fetch_with_qt_webengine(url, output_filename, timeout_seconds=40):
             self.timeout_timer.stop()
             QApplication.instance().quit()
 
-    QtWebEngine.initialize()
     app = QApplication([])
     app.setQuitOnLastWindowClosed(False)
+    QtWebEngine.initialize()
     fetcher = Fetcher()
     fetcher.start()
     app.exec_()
