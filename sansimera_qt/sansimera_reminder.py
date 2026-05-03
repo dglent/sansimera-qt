@@ -1,6 +1,8 @@
 from PyQt5.QtCore import Qt, pyqtSignal, QSettings
-from PyQt5.QtWidgets import (QVBoxLayout, QLabel, QSpinBox, QHBoxLayout,
-                            QDialogButtonBox, QGridLayout, QDialog)
+from PyQt5.QtWidgets import (
+    QVBoxLayout, QLabel, QSpinBox, QHBoxLayout,
+    QDialogButtonBox, QGridLayout, QDialog
+)
 
 
 class Reminder(QDialog):
