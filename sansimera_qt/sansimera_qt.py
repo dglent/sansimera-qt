@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (
     QAction, QMainWindow, QApplication, QSystemTrayIcon,
     QMenu, QTextBrowser, QToolBar, QMessageBox
 )
+import logging
 import re
 import platform
 import sys
@@ -34,9 +35,74 @@ except ImportError:
 __version__ = "1.2.0"
 
 
+def configure_logging():
+    root_logger = logging.getLogger()
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+        handler.close()
+
+    settings = QSettings()
+    logLevel = settings.value('Logging/Level')
+    if logLevel == '' or logLevel is None:
+        logLevel = 'DEBUG'
+        settings.setValue('Logging/Level', logLevel)
+
+    logPath = os.path.dirname(settings.fileName())
+    logFile = f'{logPath}/sansimera.log'
+
+    try:
+        if not os.path.exists(logPath):
+            os.makedirs(logPath)
+        if os.path.isfile(logFile):
+            fsize = os.stat(logFile).st_size
+            if fsize > 10240000:
+                with open(logFile, 'rb') as rFile:
+                    rFile.seek(102400)
+                    logData = rFile.read()
+                with open(logFile, 'wb') as wFile:
+                    wFile.write(logData)
+                del logData
+        logging.basicConfig(
+            format='%(asctime)s %(levelname)s: %(message)s'
+            ' - %(lineno)s: %(module)s',
+            datefmt='%Y/%m/%d %H:%M:%S',
+            filename=logFile,
+            level=logLevel
+        )
+    except OSError:
+        logFile = '/tmp/sansimera.log'
+        logging.basicConfig(
+            format='%(asctime)s %(levelname)s: %(message)s'
+            ' - %(lineno)s: %(module)s',
+            datefmt='%Y/%m/%d %H:%M:%S',
+            filename=logFile,
+            level=logLevel
+        )
+    logger = logging.getLogger('sansimera-qt')
+    logger.setLevel(logLevel)
+
+    handlerStream = logging.StreamHandler()
+    loggerStreamFormatter = logging.Formatter(
+        '%(levelname)s: %(message)s - %(lineno)s: %(module)s'
+    )
+    handlerStream.setFormatter(loggerStreamFormatter)
+    root_logger.addHandler(handlerStream)
+    os.environ['SANSIMERA_QT_LOG_FILE'] = logFile
+    os.environ['SANSIMERA_QT_LOG_LEVEL'] = logLevel
+    logging.info('Logging started: %s', logFile)
+    logging.info('sansimera-qt version: %s', __version__)
+    logging.debug('Settings file: %s', settings.fileName())
+    logging.debug('Working directory: %s', os.getcwd())
+    logging.debug('argv: %s', sys.argv)
+    logging.debug('DISPLAY=%s', os.environ.get('DISPLAY'))
+    logging.debug('XDG_RUNTIME_DIR=%s', os.environ.get('XDG_RUNTIME_DIR'))
+    return logFile
+
+
 class Sansimera(QMainWindow):
     def __init__(self, parent=None):
         super(Sansimera, self).__init__(parent)
+        logging.debug('Initializing main window')
         self.settings = QSettings()
         self.timer = QTimer(self)
         self.timer_reminder = QTimer(self)
@@ -53,6 +119,7 @@ class Sansimera(QMainWindow):
         self.eortazontes_names = ''
 
     def gui(self):
+        logging.debug('Building UI')
         self.systray = QSystemTrayIcon()
         self.icon = QIcon(':/sansimera.png')
         toggle_icon = QIcon(':/toggle_window')
@@ -108,6 +175,7 @@ class Sansimera(QMainWindow):
         controls.addAction(self.nextAction)
         controls.addAction(self.refreshAction)
         self.restoreGeometry(self.settings.value("MainWindow/Geometry", QByteArray()))
+        logging.debug('Initial refresh requested from gui setup')
         self.refresh()
 
     def interval_namedays(self):
@@ -182,6 +250,7 @@ class Sansimera(QMainWindow):
             self.menu.popup(QCursor.pos())
 
     def download(self):
+        logging.debug('Starting download worker')
         self.gnomika_html = ''
         self.workThread = WorkThread()
         self.workThread.online_signal.connect(self.status)
@@ -191,19 +260,24 @@ class Sansimera(QMainWindow):
         self.workThread.orthodox_signal.connect(self.orthodox_synarxistis)
         self.workThread.gnomika_signal.connect(self.gnomika)
         self.workThread.start()
+        logging.debug('Download worker started')
 
     def gnomika(self, html):
+        logging.debug('Received gnomika html, length=%s', len(html or ''))
         self.gnomika_html = html
 
     def orthodox_synarxistis(self, html):
+        logging.debug('Received orthodox html, length=%s', len(html or ''))
         self.lista.append(html)
         self.browser.clear()
         self.browser.append(html)
 
     def addlist(self, text):
+        logging.debug('Received event item, length=%s', len(text or ''))
         self.lista.append(text)
 
     def status(self, status):
+        logging.info('Online status received: %s', status)
         self.status_online = status
 
     def reminder_tray(self):
@@ -229,6 +303,7 @@ class Sansimera(QMainWindow):
         self.eortazontes_shown = True
 
     def window(self):
+        logging.debug('Worker finished; list items=%s, online=%s', len(self.lista), self.status_online)
         # Add the gnomika at the end while downloading the images
         self.lista.append(self.gnomika_html)
         if self.status_online or len(self.lista) > 0:
@@ -280,26 +355,43 @@ class WorkThread(QThread):
         self.wait()
 
     def run(self):
-        fetch = sansimera_fetch.Sansimera_fetch()
-        fetch.html()
-        orthodox_names, err = fetch.orthodoxos_synarxistis()
-        gnomika = fetch.gnomika()
+        logging.debug('Worker run started')
+        try:
+            fetch = sansimera_fetch.Sansimera_fetch()
+            logging.debug('Fetching sansimera html')
+            fetch.html()
+            logging.debug('Sansimera fetch done; online=%s error=%s', fetch.online, fetch.last_error)
+            logging.debug('Fetching orthodox names')
+            orthodox_names, err = fetch.orthodoxos_synarxistis()
+            logging.debug('Orthodox fetch done; success=%s error=%s', bool(orthodox_names), err)
+            logging.debug('Fetching gnomika')
+            gnomika = fetch.gnomika()
+            logging.debug('Gnomika fetch done, length=%s', len(gnomika or ''))
 
-        self.gnomika_signal.emit(gnomika)
-        # emit Text or False
-        self.orthodox_signal.emit(orthodox_names or err)
-        if orthodox_names and not err:
-            # Extract the names from the html text
-            self.names.emit(re.findall(r'title="([\w\W]+)" class', orthodox_names, re.U)[0])
-        else:
+            self.gnomika_signal.emit(gnomika)
+            # emit Text or False
+            self.orthodox_signal.emit(orthodox_names or err)
+            if orthodox_names and not err:
+                # Extract the names from the html text
+                self.names.emit(re.findall(r'title="([\w\W]+)" class', orthodox_names, re.U)[0])
+            else:
+                self.names.emit('https://www.saint.gr/calendar.aspx')
+
+            online = fetch.online
+            logging.debug('Parsing sansimera data')
+            data = sansimera_data.Sansimera_data()
+            lista = data.getAll()
+            logging.debug('Parsed %s sansimera items', len(lista))
+            for i in lista:
+                self.event.emit(i)
+            self.online_signal.emit(online)
+        except Exception:
+            logging.exception('Unhandled error in worker')
+            self.gnomika_signal.emit('')
+            self.orthodox_signal.emit('Σφάλμα κατά τη λήψη δεδομένων.')
             self.names.emit('https://www.saint.gr/calendar.aspx')
-
-        online = fetch.online
-        data = sansimera_data.Sansimera_data()
-        lista = data.getAll()
-        for i in lista:
-            self.event.emit(i)
-        self.online_signal.emit(online)
+            self.online_signal.emit(False)
+        logging.debug('Worker run finished')
         return
 
 
@@ -309,8 +401,13 @@ def main():
     app.setOrganizationName('sansimera-qt')
     app.setOrganizationDomain('sansimera-qt')
     app.setApplicationName('sansimera-qt')
+    configure_logging()
+    logging.debug('QApplication created')
+    logging.debug('Creating Sansimera main object')
     prog = Sansimera()
+    logging.debug('Entering QApplication event loop')
     app.exec_()
+    logging.info('QApplication event loop finished')
 
 
 def excepthook(exc_type, exc_value, tracebackobj):
@@ -340,12 +437,19 @@ def excepthook(exc_type, exc_value, tracebackobj):
     msg = '\n'.join(sections)
 
     print(msg)
+    logging.critical(msg)
 
     settings = QSettings()
     logPath = os.path.dirname(settings.fileName())
     logFile = f'{logPath}/sansimera.log'
-    with open(logFile, 'a') as logfile:
-        logfile.write(msg)
+    try:
+        if not os.path.exists(logPath):
+            os.makedirs(logPath)
+        with open(logFile, 'a') as logfile:
+            logfile.write(msg)
+    except OSError:
+        with open('/tmp/sansimera.log', 'a') as logfile:
+            logfile.write(msg)
 
 
 sys.excepthook = excepthook

@@ -3,6 +3,7 @@
 
 import os
 import datetime
+import logging
 import subprocess
 import sys
 import tempfile
@@ -44,6 +45,7 @@ def decode_body(body, encoding):
 
 
 def download_binary(url, filename, timeout_seconds=10):
+    logging.debug('Downloading binary: %s -> %s', url, filename)
     request = urllib.request.Request(
         url,
         headers={'User-Agent': DEFAULT_USER_AGENT}
@@ -51,11 +53,13 @@ def download_binary(url, filename, timeout_seconds=10):
     try:
         with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
             data = response.read()
-    except (timeout, urllib.error.HTTPError, urllib.error.URLError, ValueError):
+    except (timeout, urllib.error.HTTPError, urllib.error.URLError, ValueError) as err:
+        logging.warning('Binary download failed: %s error=%s', url, err)
         return False
 
     with open(filename, 'wb') as output_file:
         output_file.write(data)
+    logging.debug('Binary download saved: %s bytes=%s', filename, len(data))
     return True
 
 
@@ -66,6 +70,8 @@ def fetch_with_browser_engine(url, filename, timeout_seconds=40):
     )
     #  Run isolated qtwebengine fetch helper to avoid importing Qt WebEngine in the main process
     command = [sys.executable, helper, url, filename]
+    logging.info('Starting QtWebEngine helper: %s', url)
+    logging.debug('QtWebEngine helper command: %s', command)
     try:
         result = subprocess.run(
             command,
@@ -75,17 +81,27 @@ def fetch_with_browser_engine(url, filename, timeout_seconds=40):
             timeout=timeout_seconds
         )
     except (OSError, subprocess.SubprocessError) as err:
+        logging.error('QtWebEngine helper failed to run: %s', err)
         return False, str(err)
+
+    logging.info('QtWebEngine helper exited with code %s', result.returncode)
+    if result.stderr:
+        logging.debug('QtWebEngine helper stderr: %s', result.stderr.strip())
+    if result.stdout:
+        logging.debug('QtWebEngine helper stdout: %s', result.stdout.strip())
 
     if result.returncode == 0:
         try:
             with open(filename, 'r', encoding='utf-8') as html_file:
                 html = html_file.read()
         except OSError as err:
+            logging.error('Cannot read helper output %s: %s', filename, err)
             return False, str(err)
 
         if html and not any(marker in html for marker in CHALLENGE_MARKERS):
+            logging.info('QtWebEngine helper returned html, bytes=%s', len(html))
             return True, ''
+        logging.warning('QtWebEngine helper returned challenge or empty html')
         return False, 'Browser helper returned a verification page.'
 
     error = (result.stderr or result.stdout).strip()
@@ -129,6 +145,7 @@ class Sansimera_fetch(QObject):
         self.tmppathname = os.path.dirname(pathname) + '/sansimera-qt'
         self.error_filename = os.path.join(self.tmppathname, 'sansimera_error')
         self.html_filename = os.path.join(self.tmppathname, 'sansimera_html')
+        logging.debug('Temporary path: %s', self.tmppathname)
 
     def url(self):
         date = str(self.pay() + self.ponth())
@@ -161,6 +178,7 @@ class Sansimera_fetch(QObject):
 
     def html(self):
         link = self.url()
+        logging.info('Fetching sansimera url: %s', link)
         self.online = False
         self.last_error = ''
         with open(self.html_filename, 'w', encoding='utf-8'):
@@ -178,17 +196,21 @@ class Sansimera_fetch(QObject):
                     response.read(),
                     response.headers.get_content_charset()
                 )
+                logging.info('Direct sansimera fetch succeeded, bytes=%s', len(html))
         except timeout:
+            logging.warning('Sansimera direct fetch timed out')
             self.save_error(
                 'Η ιστοσελίδα www.sansimera.gr δεν απάντησε έγκαιρα.'
             )
             return
         except urllib.error.HTTPError as err:
+            logging.warning('Sansimera direct fetch HTTP error: %s', err.code)
             html = decode_body(
                 err.read(),
                 err.headers.get_content_charset()
             )
             if self.browser_verification_required(html):
+                logging.info('Sansimera direct fetch returned browser verification; trying QtWebEngine')
                 if self.fetch_with_browser(link):
                     return
                 self.save_error(self.last_error or CHALLENGE_ERROR_MESSAGE)
@@ -199,6 +221,7 @@ class Sansimera_fetch(QObject):
                 )
             return
         except (urllib.error.URLError, ValueError) as err:
+            logging.warning('Sansimera direct fetch failed: %s', err)
             self.save_error(
                 'Αδυναμία σύνδεσης με την ιστοσελίδα www.sansimera.gr: '
                 + str(err)
@@ -206,6 +229,7 @@ class Sansimera_fetch(QObject):
             return
 
         if self.browser_verification_required(html):
+            logging.info('Sansimera direct fetch returned browser verification; trying QtWebEngine')
             if self.fetch_with_browser(link):
                 return
             self.save_error(self.last_error or CHALLENGE_ERROR_MESSAGE)
@@ -214,12 +238,14 @@ class Sansimera_fetch(QObject):
         with open(self.html_filename, 'w', encoding='utf-8') as html_file:
             html_file.write(html)
         self.online = True
+        logging.info('Sansimera html saved: %s', self.html_filename)
 
     def browser_verification_required(self, html):
         return any(marker in html for marker in CHALLENGE_MARKERS)
 
     def save_error(self, message):
         self.last_error = message
+        logging.error('Fetch error saved: %s', message)
         with open(self.error_filename, 'w', encoding='utf-8') as error_file:
             error_file.write(message)
 
@@ -230,19 +256,24 @@ class Sansimera_fetch(QObject):
         )
         if success:
             self.online = True
+            logging.info('QtWebEngine sansimera fetch succeeded')
             return True
         self.last_error = browser_error
+        logging.error('QtWebEngine sansimera fetch failed: %s', browser_error)
         return False
 
     def orthodoxos_synarxistis(self):
+        logging.info('Fetching orthodox calendar')
         tries = 0
         while tries < 2:
             html, err = self.getHTML('https://www.saint.gr/calendar.aspx')
             if html:
                 break
             else:
+                logging.warning('Orthodox calendar fetch failed, try=%s error=%s', tries + 1, err)
                 tries += 1
         if not html:
+            logging.error('Orthodox calendar fetch abandoned: %s', err)
             return False, err
         err = "Error"
         days = html.split('<div class="w3-circle w3-theme-d5 myDayBullet">')
@@ -264,14 +295,21 @@ class Sansimera_fetch(QObject):
                 perissotera_url = re.findall(r'<a href="([\w\W]+index.aspx)', day, re.U)[0]
                 day = day.replace(perissotera_url, fr'https://www.saint.gr/{perissotera_url}')
                 day = f'<center>{day}</center>'
+                logging.info('Orthodox calendar parsed successfully')
                 return day, False
+        logging.warning('Orthodox calendar did not contain current day')
         return False, err
 
     def gnomika(self):
+        logging.info('Fetching gnomika')
         html, err = self.getHTML('https://www.gnomikologikon.gr/tyxaio.php')
+        if not html:
+            logging.error('Gnomika fetch failed: %s', err)
+            return err or 'Error'
         soup = BeautifulSoup(html, features="lxml")
         quotes = str(soup.find_all('table', 'quotes')[0])
         images_source = re.findall('src="([:/a-z.A-Z0-9-_]+)"', quotes)
+        logging.debug('Gnomika images found: %s', len(images_source))
         for img in images_source:
             filename = self.tmppathname + '/' + os.path.basename(img)
             quotes = quotes.replace(img, filename)
@@ -284,19 +322,38 @@ class Sansimera_fetch(QObject):
             end = str(end)
             quotes = quotes.replace(end, end + '<br/>')
         quotes = quotes.replace('href="', 'href="https://www.gnomikologikon.gr/')
+        logging.info('Gnomika parsed successfully')
         return quotes
 
+    def download_gnomika_image(self, img):
+        filename = self.tmppathname + '/' + os.path.basename(img)
+        if not download_binary('https://www.gnomikologikon.gr/' + img, filename):
+            logging.warning('Gnomika image download failed: %s', img)
+            return
+        try:
+            im = Image.open(filename)
+            size = 80, 80
+            im.thumbnail(size, Image.Resampling.LANCZOS)
+            im.save(filename)
+        except OSError:
+            logging.warning('Cannot resize gnomika image: %s', filename)
+            return
+
     def getHTML(self, url):
+        logging.debug('Fetching html: %s', url)
         header = {'User-Agent': DEFAULT_USER_AGENT}
         try:
             req = urllib.request.Request(url, headers=header)
             response = urllib.request.urlopen(req, timeout=10)
             page = response.read()
             html = decode_body(page, response.headers.get_content_charset())
+            logging.debug('Fetched html: %s bytes=%s', url, len(html))
             return html, False
         except timeout as err:
+            logging.warning('HTML fetch timed out: %s error=%s', url, err)
             return False, str(err)
         except (urllib.error.HTTPError, urllib.error.URLError) as err:
+            logging.warning('HTML fetch failed: %s error=%s', url, err)
             return False, str(err)
 
 
