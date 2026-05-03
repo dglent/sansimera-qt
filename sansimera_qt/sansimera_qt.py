@@ -32,7 +32,7 @@ except ImportError:
     from sansimera_qt import sansimera_fetch
     from sansimera_qt import sansimera_reminder
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 
 
 def configure_logging():
