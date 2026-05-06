@@ -29,6 +29,12 @@ CHALLENGE_MARKERS = (
     'Verifying your browser',
     '/cdn-cgi/challenge-platform',
 )
+CONTENT_MARKERS = (
+    'data-fancybox="event',
+    'data-fancybox="birth',
+    'data-fancybox="death',
+    'class="arrowlist',
+)
 CHALLENGE_ERROR_MESSAGE = (
     'Η ιστοσελίδα www.sansimera.gr ζήτησε επαλήθευση '
     'φυλλομετρητή και δεν επέστρεψε τα γεγονότα της ημέρας.'
@@ -63,7 +69,11 @@ def download_binary(url, filename, timeout_seconds=10):
     return True
 
 
-def fetch_with_browser_engine(url, filename, timeout_seconds=40):
+def sansimera_content_ready(html):
+    return any(marker in html for marker in CONTENT_MARKERS)
+
+
+def fetch_with_browser_engine(url, filename, timeout_seconds=60):
     helper = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         'sansimera_browser_fetch.py'
@@ -78,7 +88,7 @@ def fetch_with_browser_engine(url, filename, timeout_seconds=40):
             check=False,
             capture_output=True,
             text=True,
-            timeout=timeout_seconds
+            timeout=timeout_seconds + 10
         )
     except (OSError, subprocess.SubprocessError) as err:
         logging.error('QtWebEngine helper failed to run: %s', err)
@@ -98,9 +108,15 @@ def fetch_with_browser_engine(url, filename, timeout_seconds=40):
             logging.error('Cannot read helper output %s: %s', filename, err)
             return False, str(err)
 
-        if html and not any(marker in html for marker in CHALLENGE_MARKERS):
+        if html and sansimera_content_ready(html):
             logging.info('QtWebEngine helper returned html, bytes=%s', len(html))
             return True, ''
+        if html and not any(marker in html for marker in CHALLENGE_MARKERS):
+            logging.warning(
+                'QtWebEngine helper returned html without sansimera content, bytes=%s',
+                len(html)
+            )
+            return False, CHALLENGE_ERROR_MESSAGE
         logging.warning('QtWebEngine helper returned challenge or empty html')
         return False, 'Browser helper returned a verification page.'
 
@@ -111,7 +127,10 @@ def fetch_with_browser_engine(url, filename, timeout_seconds=40):
             'Δεν βρέθηκε διαθέσιμο Qt WebEngine '
             'για την επαλήθευση του www.sansimera.gr.'
         )
-    if 'Browser verification did not complete in time.' in error:
+    if (
+        'Browser verification did not complete in time.' in error
+        or 'Browser verification did not return sansimera content.' in error
+    ):
         return False, CHALLENGE_ERROR_MESSAGE
     return (
         False,

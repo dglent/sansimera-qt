@@ -31,6 +31,12 @@ CHALLENGE_MARKERS = (
     'Verifying your browser',
     '/cdn-cgi/challenge-platform',
 )
+CONTENT_MARKERS = (
+    'data-fancybox="event',
+    'data-fancybox="birth',
+    'data-fancybox="death',
+    'class="arrowlist',
+)
 
 
 def configure_logging():
@@ -57,7 +63,11 @@ def browser_verification_required(html):
     return any(marker in html for marker in CHALLENGE_MARKERS)
 
 
-def fetch_with_qt_webengine(url, output_filename, timeout_seconds=40):
+def sansimera_content_ready(html):
+    return any(marker in html for marker in CONTENT_MARKERS)
+
+
+def fetch_with_qt_webengine(url, output_filename, timeout_seconds=60):
     logging.info('QtWebEngine helper fetch start: %s', url)
     logging.debug('Helper output file: %s', output_filename)
     logging.debug('QT_QPA_PLATFORM=%s', os.environ.get('QT_QPA_PLATFORM'))
@@ -103,9 +113,11 @@ def fetch_with_qt_webengine(url, output_filename, timeout_seconds=40):
         def on_html_ready(self, html):
             self.html = html
             logging.debug('QtWebEngine html callback bytes=%s', len(html or ''))
-            if html and not browser_verification_required(html):
+            if html and sansimera_content_ready(html):
                 self.success = True
                 self.stop()
+            elif html and not browser_verification_required(html):
+                logging.debug('QtWebEngine html does not contain sansimera content yet')
 
         def on_timeout(self):
             logging.warning('QtWebEngine helper timed out')
@@ -134,10 +146,11 @@ def fetch_with_qt_webengine(url, output_filename, timeout_seconds=40):
         return False, 'Browser verification did not complete in time.'
 
     if fetcher.html:
-        with open(output_filename, 'w', encoding='utf-8') as output_file:
-            output_file.write(fetcher.html)
-        logging.info('QtWebEngine helper wrote fallback html, bytes=%s', len(fetcher.html))
-        return True, ''
+        logging.warning(
+            'QtWebEngine helper returned html without sansimera content, bytes=%s',
+            len(fetcher.html)
+        )
+        return False, 'Browser verification did not return sansimera content.'
 
     logging.error('QtWebEngine helper returned no html')
     return False, 'Qt WebEngine fetch failed.'
@@ -165,7 +178,10 @@ def main():
     if error:
         print(error, file=sys.stderr)
         logging.error(error)
-        if 'verification did not complete' in error.lower():
+        if (
+            'verification did not complete' in error.lower()
+            or 'did not return sansimera content' in error.lower()
+        ):
             return 4
         return 3
     logging.error('QtWebEngine helper failed without error message')
