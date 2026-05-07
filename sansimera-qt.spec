@@ -1,7 +1,7 @@
 %define aname sansimera_qt
 
 Name:           sansimera-qt
-Version:        0.5.0
+Version:        1.2.2
 Release:        %mkrel 1
 Group:          Network/News
 Summary:        Namedays and events of the day back in the history
@@ -18,9 +18,7 @@ Requires:       python3-qt5
 Requires:       python3-sip
 Requires:       python3-pillow
 Requires:       python3-beautifulsoup4
-Requires:       python3-urllib3
 Requires:       python3-requests
-Requires:       wget
 
 
 %description
