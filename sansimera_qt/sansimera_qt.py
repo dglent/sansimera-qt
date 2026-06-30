@@ -261,7 +261,7 @@ class Sansimera(QMainWindow):
         self.gnomika_html = ''
         self.workThread = WorkThread()
         self.workThread.online_signal.connect(self.status)
-        self.workThread.finished.connect(self.window)
+        self.workThread.finished.connect(self.main_window)
         self.workThread.event.connect(self.addlist)
         self.workThread.names.connect(self.nameintooltip)
         self.workThread.orthodox_signal.connect(self.orthodox_synarxistis)
@@ -309,7 +309,7 @@ class Sansimera(QMainWindow):
         self.reminder_tray()
         self.eortazontes_shown = True
 
-    def window(self):
+    def main_window(self):
         logging.debug('Worker finished; list items=%s, online=%s', len(self.lista), self.status_online)
         # Add the gnomika at the end while downloading the images
         self.lista.append(self.gnomika_html)
