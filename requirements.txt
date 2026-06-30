@@ -1,0 +1,6 @@
+PyQt5
+PyQtWebEngine
+Pillow
+beautifulsoup4
+requests
+lxml

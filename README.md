@@ -11,3 +11,8 @@ Requirements:
     python3-pillow or python3-imaging
     python3-beautifulsoup4 or python3-bs4
     python3-requests
+    python3-lxml
+
+For pip-based installs, use:
+
+    pip install -r requirements.txt
