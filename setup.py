@@ -48,7 +48,7 @@ setup(
     author="Dimitrios Glentadakis",
     author_email="dglent@free.fr",
     url="https://github.com/dglent/sansimera-qt",
-    license="GPLv3",
+    license="GPL-3.0-or-later",
     packages=["sansimera_qt"],
     package_data={
         "sansimera_qt": ["images/*.png"],
@@ -91,8 +91,6 @@ setup(
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Other Audience",
         "Natural Language :: Greek",
-        "License :: OSI Approved :: GNU General Public License (GPL)",
-        "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
