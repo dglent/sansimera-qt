@@ -43,7 +43,7 @@ class BuildPy(build_py):
 
 setup(
     name="sansimera_qt",
-    version="1.2.2",
+    version="2.0.0",
     description="A system tray application for the namedays and the events of the day back in the history",
     author="Dimitrios Glentadakis",
     author_email="dglent@free.fr",

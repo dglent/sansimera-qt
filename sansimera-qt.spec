@@ -1,7 +1,7 @@
 %define aname sansimera_qt
 
 Name:           sansimera-qt
-Version:        1.2.2
+Version:        2.0.0
 Release:        %mkrel 1
 Group:          Network/News
 Summary:        Namedays and events of the day back in the history
