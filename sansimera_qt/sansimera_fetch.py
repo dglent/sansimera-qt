@@ -11,7 +11,7 @@ import urllib.request
 import urllib.error
 import re
 from bs4 import BeautifulSoup
-from PyQt5.QtCore import QObject, QThread
+from PyQt6.QtCore import QObject, QThread
 from multiprocessing.pool import ThreadPool
 from socket import timeout
 

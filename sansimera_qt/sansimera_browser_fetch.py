@@ -3,26 +3,25 @@ import logging
 import sys
 
 
-os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
+if not os.environ.get('DISPLAY') and not os.environ.get('WAYLAND_DISPLAY'):
+    os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 os.environ.setdefault('QTWEBENGINE_DISABLE_SANDBOX', '1')
 os.environ.setdefault(
     'QTWEBENGINE_CHROMIUM_FLAGS',
-    '--disable-gpu --disable-software-rasterizer --no-sandbox '
+    '--disable-gpu --no-sandbox '
     '--disable-crash-reporter --disable-blink-features=AutomationControlled'
 )
 
 try:
-    from PyQt5.QtWidgets import QApplication
-    from PyQt5.QtCore import QObject, QTimer, QUrl
-    from PyQt5.QtWebEngine import QtWebEngine
-    from PyQt5.QtWebEngineWidgets import QWebEnginePage
+    from PyQt6.QtWidgets import QApplication
+    from PyQt6.QtCore import QObject, QTimer, QUrl
+    from PyQt6.QtWebEngineCore import QWebEnginePage
     QT_WEBENGINE_IMPORT_ERROR = None
 except Exception as err:
     QApplication = None
     QObject = object
     QTimer = None
     QUrl = None
-    QtWebEngine = None
     QWebEnginePage = None
     QT_WEBENGINE_IMPORT_ERROR = err
 
@@ -128,12 +127,11 @@ def fetch_with_qt_webengine(url, output_filename, timeout_seconds=60):
             self.timeout_timer.stop()
             QApplication.instance().quit()
 
-    app = QApplication([])
+    app = QApplication([sys.argv[0]])
     app.setQuitOnLastWindowClosed(False)
-    QtWebEngine.initialize()
     fetcher = Fetcher()
     fetcher.start()
-    app.exec_()
+    app.exec()
 
     if fetcher.success:
         with open(output_filename, 'w', encoding='utf-8') as output_file:

@@ -10,15 +10,15 @@ URL:            https://github.com/dglent/sansimera-qt
 Source0:        %{name}-%{version}.tar.gz
 BuildArch:      noarch
 
-BuildRequires:  python3-qt5-devel
+BuildRequires:  python3-qt6-devel
 BuildRequires:  python3
 BuildRequires:  python3-setuptools
 BuildRequires:  imagemagick
 
-Requires:       python3-qt5
-Requires:       python3-qt5-webengine
-Requires:       python3-qt5-webenginewidgets
-Requires:       python3-sip
+Requires:       python3-qt6
+Requires:       python3-qt6-webengine
+Requires:       python3-qt6-webenginecore
+Requires:       python3-qt6-webenginewidgets
 Requires:       python3-pillow
 Requires:       python3-beautifulsoup4
 Requires:       python3-requests

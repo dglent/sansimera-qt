@@ -1,5 +1,5 @@
-from PyQt5.QtCore import Qt, pyqtSignal, QSettings
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import Qt, pyqtSignal, QSettings
+from PyQt6.QtWidgets import (
     QVBoxLayout, QLabel, QSpinBox, QHBoxLayout,
     QDialogButtonBox, QGridLayout, QDialog
 )
@@ -33,9 +33,11 @@ class Reminder(QDialog):
         buttonLayout = QHBoxLayout()
         buttonLayout.addStretch()
         buttonBox = QDialogButtonBox()
-        buttonBox.setOrientation(Qt.Horizontal)
+        buttonBox.setOrientation(Qt.Orientation.Horizontal)
         buttonBox.setStandardButtons(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+            QDialogButtonBox.StandardButton.Ok
+            | QDialogButtonBox.StandardButton.Cancel
+        )
         buttonBox.setContentsMargins(0, 30, 0, 0)
         buttonLayout.addWidget(buttonBox)
         self.layout.addLayout(buttonLayout)

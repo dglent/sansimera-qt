@@ -1,5 +1,5 @@
-PyQt5
-PyQtWebEngine
+PyQt6
+PyQt6-WebEngine
 Pillow
 beautifulsoup4
 requests

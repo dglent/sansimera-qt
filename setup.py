@@ -21,16 +21,18 @@ class BuildQrc(Command):
     def run(self):
         source = "sansimera_qt/resources.qrc"
         target = "sansimera_qt/qrc_resources.py"
-        pyrcc5 = shutil.which("pyrcc5")
+        # qt6 (PySide2/6) : os.system('rcc -g python sansimera_qt/resources.qrc | sed '0,/PySide2/s//PyQt6/' > sansimera_qt/qrc_resources.py')
 
-        if pyrcc5 is None:
-            if os.path.exists(target):
-                self.announce(f"pyrcc5 not found, using existing {target}", level=2)
-                return
-            raise RuntimeError("pyrcc5 is required to build qrc_resources.py")
+        # pyrcc5 = shutil.which("pyrcc5")
 
-        self.announce(f"building {target} from {source}", level=2)
-        subprocess.check_call([pyrcc5, "-o", target, source])
+        # if pyrcc5 is None:
+        #     if os.path.exists(target):
+        #         self.announce(f"pyrcc5 not found, using existing {target}", level=2)
+        #         return
+        #     raise RuntimeError("pyrcc5 is required to build qrc_resources.py")
+
+        # self.announce(f"building {target} from {source}", level=2)
+        # subprocess.check_call([pyrcc5, "-o", target, source])
 
 
 class BuildPy(build_py):
@@ -53,8 +55,8 @@ setup(
     },
     keywords=["eortologio", "qt", "trayicon", "history", "events", "san simera"],
     install_requires=[
-        "PyQt5",
-        "PyQtWebEngine",
+        "PyQt6",
+        "PyQt6-WebEngine",
         "Pillow",
         "beautifulsoup4",
         "requests",

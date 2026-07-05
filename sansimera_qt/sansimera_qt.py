@@ -3,14 +3,14 @@
 # Author: Dimitrios Glentadakis dglent@free.fr
 # License: GPLv3
 
-from PyQt5.QtCore import (
+from PyQt6.QtCore import (
     QThread, QTimer, Qt, QSettings, QByteArray, pyqtSignal,
     QT_VERSION_STR, PYQT_VERSION_STR
 )
-from PyQt5.QtGui import QIcon, QCursor, QTextCursor
-from PyQt5.QtWidgets import (
-    QAction, QMainWindow, QApplication, QSystemTrayIcon,
-    QMenu, QTextBrowser, QToolBar, QMessageBox
+from PyQt6.QtGui import QAction, QIcon, QCursor, QTextCursor
+from PyQt6.QtWidgets import (
+    QMainWindow, QApplication, QSystemTrayIcon, QMenu, QTextBrowser,
+    QToolBar, QMessageBox
 )
 import logging
 import re
@@ -169,7 +169,7 @@ class Sansimera(QMainWindow):
         self.aboutAction.setIcon(iicon)
         self.notification_interval.setIcon(inicon)
         controls = QToolBar()
-        self.addToolBar(Qt.BottomToolBarArea, controls)
+        self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, controls)
         controls.setObjectName('Controls')
         controls.addAction(self.previousAction)
         controls.addAction(self.nextAction)
@@ -181,7 +181,7 @@ class Sansimera(QMainWindow):
     def interval_namedays(self):
         dialog = sansimera_reminder.Reminder(self)
         dialog.applied_signal['QString'].connect(self.reminder)
-        dialog.exec_()
+        dialog.exec()
 
     def reminder(self, time):
         self.settings.setValue('Interval', time)
@@ -196,7 +196,7 @@ class Sansimera(QMainWindow):
             else:
                 self.lista_pos = 0
             self.browser.append(self.lista[self.lista_pos])
-            self.browser.moveCursor(QTextCursor.Start)
+            self.browser.moveCursor(QTextCursor.MoveOperation.Start)
         else:
             return
 
@@ -208,7 +208,7 @@ class Sansimera(QMainWindow):
             else:
                 self.lista_pos -= 1
             self.browser.append(self.lista[self.lista_pos])
-            self.browser.moveCursor(QTextCursor.Start)
+            self.browser.moveCursor(QTextCursor.MoveOperation.Start)
         else:
             return
 
@@ -245,14 +245,14 @@ class Sansimera(QMainWindow):
     def activate(self, reason):
         self.menu.hide()
         state = self.isVisible()
-        if reason == 3:
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:
             if state:
                 self.hide()
                 return
             else:
                 self.show()
                 return
-        if reason == 1:
+        if reason == QSystemTrayIcon.ActivationReason.Context:
             self.menu.hide()
             self.menu.popup(QCursor.pos())
 
@@ -316,7 +316,7 @@ class Sansimera(QMainWindow):
         if self.status_online or len(self.lista) > 0:
             self.browser.clear()
             self.browser.append(self.lista[0])
-            self.browser.moveCursor(QTextCursor.Start)
+            self.browser.moveCursor(QTextCursor.MoveOperation.Start)
             self.lista_pos = 0
             logging.debug('Main window updated with first item')
         else:
@@ -422,7 +422,7 @@ def main():
     logging.debug('Creating Sansimera main object')
     prog = Sansimera()
     logging.debug('Entering QApplication event loop')
-    app.exec_()
+    app.exec()
     logging.info('QApplication event loop finished')
 
 
