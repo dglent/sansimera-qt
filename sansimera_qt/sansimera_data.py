@@ -92,6 +92,9 @@ class Sansimera_data(object):
                     img_source = re.findall('src="[:/a-z.A-Z0-9-_]+"', text)
                     for src in img_source:
                         text = text.replace(src, 'src="{}"'.format(iconName))
+                    if text.count('data-fancybox="event-') == 1:
+                        text = text.replace(' <=""', '')
+                        text = text.replace(' picture=""', '')
             except (requests.exceptions.RequestException, OSError) as err:
                 logging.warning('Image download skipped: %s error=%s', iconUrl, err)
         return text
