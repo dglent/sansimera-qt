@@ -1,7 +1,8 @@
 import logging
-import re
-import requests
 import os
+import re
+
+import requests
 from bs4 import BeautifulSoup
 
 try:

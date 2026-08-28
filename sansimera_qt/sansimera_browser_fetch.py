@@ -1,7 +1,6 @@
-import os
 import logging
+import os
 import sys
-
 
 if not os.environ.get('DISPLAY') and not os.environ.get('WAYLAND_DISPLAY'):
     os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
@@ -13,9 +12,9 @@ os.environ.setdefault(
 )
 
 try:
-    from PyQt6.QtWidgets import QApplication
     from PyQt6.QtCore import QObject, QTimer, QUrl
     from PyQt6.QtWebEngineCore import QWebEnginePage
+    from PyQt6.QtWidgets import QApplication
     QT_WEBENGINE_IMPORT_ERROR = None
 except Exception as err:
     QApplication = None

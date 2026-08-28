@@ -3,23 +3,35 @@
 # Author: Dimitrios Glentadakis dglent@free.fr
 # License: GPLv3
 
-from PyQt6.QtCore import (
-    QThread, QTimer, Qt, QSettings, QByteArray, pyqtSignal,
-    QT_VERSION_STR, PYQT_VERSION_STR
-)
-from PyQt6.QtGui import QAction, QIcon, QCursor, QTextCursor
-from PyQt6.QtWidgets import (
-    QMainWindow, QApplication, QSystemTrayIcon, QMenu, QTextBrowser,
-    QToolBar, QMessageBox
-)
-import logging
-import re
-import platform
-import sys
 import datetime
-import traceback
+import logging
 import os
+import platform
+import re
+import sys
+import traceback
 from io import StringIO
+
+from PyQt6.QtCore import (
+    PYQT_VERSION_STR,
+    QT_VERSION_STR,
+    QByteArray,
+    QSettings,
+    Qt,
+    QThread,
+    QTimer,
+    pyqtSignal,
+)
+from PyQt6.QtGui import QAction, QCursor, QIcon, QTextCursor
+from PyQt6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QMenu,
+    QMessageBox,
+    QSystemTrayIcon,
+    QTextBrowser,
+    QToolBar,
+)
 
 try:
     import qrc_resources
@@ -27,10 +39,12 @@ try:
     import sansimera_fetch
     import sansimera_reminder
 except ImportError:
-    from sansimera_qt import qrc_resources
-    from sansimera_qt import sansimera_data
-    from sansimera_qt import sansimera_fetch
-    from sansimera_qt import sansimera_reminder
+    from sansimera_qt import (
+        qrc_resources,
+        sansimera_data,
+        sansimera_fetch,
+        sansimera_reminder,
+    )
 
 __version__ = "2.0.1"
 

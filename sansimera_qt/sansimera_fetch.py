@@ -1,19 +1,20 @@
 # Author: Dimitrios Glentadakis dglent@free.fr
 # License: GPLv3
 
-import os
 import datetime
 import logging
+import os
+import re
 import subprocess
 import sys
 import tempfile
-import urllib.request
 import urllib.error
-import re
-from bs4 import BeautifulSoup
-from PyQt6.QtCore import QObject, QThread
+import urllib.request
 from multiprocessing.pool import ThreadPool
 from socket import timeout
+
+from bs4 import BeautifulSoup
+from PyQt6.QtCore import QObject, QThread
 
 try:
     import Image

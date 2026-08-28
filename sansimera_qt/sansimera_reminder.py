@@ -1,7 +1,12 @@
-from PyQt6.QtCore import Qt, pyqtSignal, QSettings
+from PyQt6.QtCore import QSettings, Qt, pyqtSignal
 from PyQt6.QtWidgets import (
-    QVBoxLayout, QLabel, QSpinBox, QHBoxLayout,
-    QDialogButtonBox, QGridLayout, QDialog
+    QDialog,
+    QDialogButtonBox,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QSpinBox,
+    QVBoxLayout,
 )
 
 
