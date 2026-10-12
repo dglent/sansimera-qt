@@ -46,7 +46,7 @@ except ImportError:
         sansimera_reminder,
     )
 
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 
 
 def configure_logging():
