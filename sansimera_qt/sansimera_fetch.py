@@ -10,11 +10,11 @@ import sys
 import tempfile
 import urllib.error
 import urllib.request
-from multiprocessing.pool import ThreadPool
+from concurrent.futures import ThreadPoolExecutor
 from socket import timeout
 
 from bs4 import BeautifulSoup
-from PyQt6.QtCore import QObject, QThread
+from PyQt6.QtCore import QObject
 
 try:
     import Image
@@ -39,6 +39,10 @@ CONTENT_MARKERS = (
 CHALLENGE_ERROR_MESSAGE = (
     'Η ιστοσελίδα www.sansimera.gr ζήτησε επαλήθευση '
     'φυλλομετρητή και δεν επέστρεψε τα γεγονότα της ημέρας.'
+)
+# Keep image jobs alive after Sansimera_fetch.gnomika() returns.
+IMAGE_DOWNLOAD_POOL = ThreadPoolExecutor(
+    max_workers=10, thread_name_prefix='gnomika-image'
 )
 
 
@@ -68,6 +72,19 @@ def download_binary(url, filename, timeout_seconds=10):
         output_file.write(data)
     logging.debug('Binary download saved: %s bytes=%s', filename, len(data))
     return True
+
+
+def download_gnomika_image(img, tmppathname):
+    filename = os.path.join(tmppathname, os.path.basename(img))
+    try:
+        if not download_binary('https://www.gnomikologikon.gr/' + img, filename):
+            logging.warning('Gnomika image download failed: %s', img)
+            return
+        with Image.open(filename) as image:
+            image.thumbnail((80, 80), Image.Resampling.LANCZOS)
+            image.save(filename)
+    except OSError:
+        logging.warning('Cannot save gnomika image: %s', filename)
 
 
 def sansimera_content_ready(html):
@@ -334,8 +351,8 @@ class Sansimera_fetch(QObject):
             filename = self.tmppathname + '/' + os.path.basename(img)
             quotes = quotes.replace(img, filename)
 
-        self.workThread = WorkThread(images_source, self.tmppathname)
-        self.workThread.start()
+        for img in images_source:
+            IMAGE_DOWNLOAD_POOL.submit(download_gnomika_image, img, self.tmppathname)
 
         end_quote = re.findall('<span style="font-weight:600;">[0-9]+</span>', quotes)
         for end in end_quote:
@@ -344,20 +361,6 @@ class Sansimera_fetch(QObject):
         quotes = quotes.replace('href="', 'href="https://www.gnomikologikon.gr/')
         logging.info('Gnomika parsed successfully')
         return quotes
-
-    def download_gnomika_image(self, img):
-        filename = self.tmppathname + '/' + os.path.basename(img)
-        if not download_binary('https://www.gnomikologikon.gr/' + img, filename):
-            logging.warning('Gnomika image download failed: %s', img)
-            return
-        try:
-            im = Image.open(filename)
-            size = 80, 80
-            im.thumbnail(size, Image.Resampling.LANCZOS)
-            im.save(filename)
-        except OSError:
-            logging.warning('Cannot resize gnomika image: %s', filename)
-            return
 
     def getHTML(self, url):
         logging.debug('Fetching html: %s', url)
@@ -375,30 +378,6 @@ class Sansimera_fetch(QObject):
         except (urllib.error.HTTPError, urllib.error.URLError) as err:
             logging.warning('HTML fetch failed: %s error=%s', url, err)
             return False, str(err)
-
-
-class WorkThread(QThread):
-
-    def __init__(self, images_source, tmppathname):
-        QThread.__init__(self)
-        self.images_source = images_source
-        self.tmppathname = tmppathname
-        ThreadPool(10).imap_unordered(self.download, images_source)
-
-    def __del__(self):
-        self.wait()
-
-    def download(self, img):
-        filename = self.tmppathname + '/' + os.path.basename(img)
-        if not download_binary('https://www.gnomikologikon.gr/' + img, filename):
-            return
-        try:
-            im = Image.open(filename)
-            size = 80, 80
-            im.thumbnail(size, Image.Resampling.LANCZOS)
-            im.save(filename)
-        except OSError:
-            return
 
 
 if __name__ == "__main__":
